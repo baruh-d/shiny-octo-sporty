@@ -1,7 +1,28 @@
-import type { NextConfig } from "next";
+// import { type NextConfig } from "next";
+// import withPWA from "next-pwa";
 
-const nextConfig: NextConfig = {
-  /* config options here */
-};
+// type PWAConfig = {
+//   dest: string;
+//   disable: boolean;
+//   register: boolean;
+//   skipWaiting: boolean;
+// };
 
-export default nextConfig;
+// declare module "next-pwa" {
+//   export default function withPWA(config: NextConfig & { pwa?: PWAConfig }): NextConfig;
+// }
+
+// const nextConfig: NextConfig = {
+//   typescript: {
+//     ignoreBuildErrors: true,
+//   },
+//   /* config options here */
+//   pwa: {
+//     dest: "public",
+//     disable: process.env.NODE_ENV === "development",
+//     register: true,
+//     skipWaiting: true,
+//   },
+// };
+
+// export default withPWA(nextConfig);
