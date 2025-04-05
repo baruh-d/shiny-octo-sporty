@@ -9,6 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.0.1",
+    "@radix-ui/react-label": "^2.1.2",
+    "@radix-ui/react-select": "^2.1.6",
+    "@radix-ui/react-slot": "^1.1.2",
     "@reduxjs/toolkit": "^2.6.1",
     "@supabase/supabase-js": "^2.49.4",
     "class-variance-authority": "^0.7.1",
@@ -20,7 +24,8 @@
     "react-dom": "^19.0.0",
     "react-redux": "^9.2.0",
     "tailwind-merge": "^3.1.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
