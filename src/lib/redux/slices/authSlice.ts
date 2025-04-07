@@ -1,20 +1,38 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit"
 import { supabase } from "@/lib/supabase/client"
-import type { Session, User } from "@supabase/supabase-js"
+import type { Session, User as SupabaseUser } from "@supabase/supabase-js"
 
 type UserRole = "admin" | "athlete" | "coach" | "scout" | null
 
-type UserDetails = {
+// Define types for the auth state
+export interface User {
   id: string
-  role: UserRole
+  email: string | null
+  role: string | null
+}
+
+export interface UserDetails {
+  id: string
+  user_id: string
   first_name?: string
   last_name?: string
+  date_of_birth?: string
+  gender?: string
+  sport?: string
+  position?: string
+  height?: number
+  weight?: number
+  location?: string
+  bio?: string
+  achievements?: Array<{ title: string; date: string; description?: string }>
   avatar_url?: string
-} | null
+  created_at: string
+  updated_at: string
+}
 
 interface AuthState {
-  user: User | null
-  userDetails: UserDetails
+  user: SupabaseUser | null
+  userDetails: UserDetails | null
   session: Session | null
   isLoading: boolean
   error: string | null
@@ -135,22 +153,36 @@ export const getSession = createAsyncThunk("auth/getSession", async (_, { reject
   }
 })
 
+export const refreshSession = createAsyncThunk(
+  "auth/refreshSession",
+  async (_, { rejectWithValue }) => {
+    try {
+      const { data, error } = await supabase.auth.refreshSession()
+      if (error) throw error
+      return data
+    } catch (error: unknown) {
+      return rejectWithValue((error as Error).message)
+    }
+  }
+)
+
 export const updateUserProfile = createAsyncThunk(
-  "auth/updateUserProfile",
+  'auth/updateUserProfile',
   async (
     {
       userId,
       profileData,
     }: {
-      userId: string
-      profileData: Partial<{
-        first_name: string
-        last_name: string
-        avatar_url: string
-        [key: string]: string | undefined
-      }>
+      userId: string;
+      profileData: Partial<Omit<UserDetails, 'id' | 'user_id' | 'created_at' | 'updated_at'>> & {
+        first_name: string;
+        last_name: string;
+        avatar_url: string;
+        achievements?: Array<{ title: string; date: string; description?: string }>;
+        [key: string]: string | string[] | Array<{ title: string; date: string; description?: string }> | undefined;
+      };
     },
-    { rejectWithValue },
+    { rejectWithValue }
   ) => {
     try {
       const { data, error } = await supabase
@@ -165,14 +197,14 @@ export const updateUserProfile = createAsyncThunk(
     } catch (error: unknown) {
       return rejectWithValue((error as Error).message)
     }
-  },
+  }
 )
 
 const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    setUser: (state, action: PayloadAction<User | null>) => {
+    setUser: (state, action: PayloadAction<SupabaseUser | null>) => {
       state.user = action.payload
     },
     setUserDetails: (state, action: PayloadAction<UserDetails>) => {
@@ -181,6 +213,9 @@ const authSlice = createSlice({
     setSession: (state, action: PayloadAction<Session | null>) => {
       state.session = action.payload
     },
+    clearError: (state) => {
+      state.error = null
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -244,8 +279,24 @@ const authSlice = createSlice({
         state.error = action.payload as string
       })
       // Update User Profile
-      .addCase(updateUserProfile.fulfilled, (state, action) => {
-        state.userDetails = action.payload
+      .addCase(updateUserProfile.pending, (state) => {
+        state.isLoading = true
+      })
+      .addCase(updateUserProfile.rejected, (state, action) => {
+        state.isLoading = false
+        state.error = action.payload as string
+      })
+      // reset password
+      .addCase(resetPassword.pending, (state) => {
+        state.isLoading = true
+        state.error = null
+      })
+      .addCase(resetPassword.fulfilled, (state) => {
+        state.isLoading = false
+      })
+      .addCase(resetPassword.rejected, (state, action) => {
+        state.isLoading = false
+        state.error = action.payload as string
       })
   },
 })

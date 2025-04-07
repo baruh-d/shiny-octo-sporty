@@ -6,6 +6,7 @@ type BackgroundImageProps = {
   alt: string;
   className?: string;
   overlay?: "gradient" | "dark" | "none";
+  children?: React.ReactNode;
 };
 
 export function BackgroundImage({
