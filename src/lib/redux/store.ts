@@ -1,10 +1,12 @@
 // store/store.ts
 import { configureStore, type ThunkAction, type Action } from '@reduxjs/toolkit';
 import authReducer from '@/lib/redux/slices/authSlice';
+import athletesReducer from '@/lib/redux/slices/athletesSlice';
 
 const store = configureStore({
   reducer: {
     auth: authReducer,
+    athletes: athletesReducer,
   },
 });
 
