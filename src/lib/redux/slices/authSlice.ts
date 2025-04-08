@@ -20,12 +20,12 @@ export interface UserDetails {
   gender?: string
   sport?: string
   position?: string
-  height?: number
-  weight?: number
+  height?: string | null
+  weight?: string | null
   location?: string
   bio?: string
   achievements?: Array<{ title: string; date: string; description?: string }>
-  avatar_url?: string
+  avatar_url?: string | null
   created_at: string
   updated_at: string
 }
