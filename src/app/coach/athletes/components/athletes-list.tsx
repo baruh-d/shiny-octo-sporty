@@ -72,12 +72,23 @@ export function AthletesList() {
                 <SelectValue placeholder="Filter by sport" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Sports</SelectItem>
-                {uniqueSports.map((sport) => (
-                  <SelectItem key={sport} value={sport}>
-                    {sport}
-                  </SelectItem>
-                ))}
+              <SelectItem value="all">All Sports</SelectItem>
+                {uniqueSports.length > 0 ? (
+                  uniqueSports.map((sport) => (
+                    <SelectItem key={sport} value={sport}>
+                      {sport}
+                    </SelectItem>
+                  ))
+                ) : (
+                  // Add these default options when no sports are loaded
+                  <>
+                    <SelectItem value="soccer">Soccer</SelectItem>
+                    <SelectItem value="basketball">Basketball</SelectItem>
+                    <SelectItem value="athletics">Athletics</SelectItem>
+                    <SelectItem value="volleyball">Volleyball</SelectItem>
+                    <SelectItem value="rugby">Rugby</SelectItem>
+                  </>
+                )}
               </SelectContent>
             </Select>
           </div>

@@ -1,173 +1,213 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useParams } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Logo } from "@/app/components/logo"
-import { BarChart3, CalendarDays, Gift, GraduationCapIcon as Graduation, Home, Settings, Trophy, Users, Video, BookOpen, Heart, Dumbbell, Utensils, FileText, MapPin, MessageSquare } from 'lucide-react'
-import { useSelector } from "react-redux"
-import type { RootState } from "@/lib/redux/store"
+import { 
+  BarChart3, 
+  CalendarDays, 
+  Gift, 
+  GraduationCap as Graduation, 
+  Home, 
+  Settings, 
+  Trophy, 
+  Users, 
+  Video, 
+  BookOpen, 
+  Heart, 
+  Dumbbell, 
+  Utensils, 
+  FileText, 
+  MapPin, 
+  MessageSquare 
+} from 'lucide-react'
+// import { useSelector } from "react-redux"
+// import type { RootState } from "@/lib/redux/store"
+
+type Route = {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  href: string;
+};
+
+type RoleRoutes = {
+  athlete: Route[];
+  coach: Route[];
+  scout: Route[];
+  admin: Route[];
+};
 
 export function Sidebar() {
   const pathname = usePathname()
-  const user = useSelector((state: RootState) => state.auth.user)
+  const params = useParams()
+  const currentRole = (params.role as string) || "athlete"
+  // const user = useSelector((state: RootState) => state.auth.user)
   
   // Base routes for all users
-  const baseRoutes = [
+  const baseRoutes: Route[] = [
     {
       label: "Dashboard",
       icon: Home,
-      href: "/dashboard",
+      href: `/${currentRole}/dashboard`,
     },
     {
       label: "Events",
       icon: CalendarDays,
-      href: "/events",
+      href: `/${currentRole}/events`,
     },
     {
       label: "Training",
       icon: BookOpen,
-      href: "/training",
+      href: `/${currentRole}/training`,
     },
     {
       label: "Videos",
       icon: Video,
-      href: "/videos",
+      href: `/${currentRole}/videos`,
     },
     {
       label: "Mental Health",
       icon: Heart,
-      href: "/mental-health",
+      href: `/${currentRole}/mental-health`,
     },
     {
       label: "Meal Plans",
       icon: Utensils,
-      href: "/meal-plans",
+      href: `/${currentRole}/meal-plans`,
     },
     {
       label: "Donations",
       icon: Gift,
-      href: "/donate",
+      href: `/${currentRole}/donate`,
     },
   ]
   
   // Role-specific routes
-  const roleRoutes = {
+  const roleRoutes: RoleRoutes = {
     athlete: [
       {
         label: "My Performance",
         icon: BarChart3,
-        href: "/athlete/performance",
+        href: `/${currentRole}/performance`,
       },
       {
         label: "Achievements",
         icon: Trophy,
-        href: "/athlete/achievements",
+        href: `/${currentRole}/achievements`,
       },
       {
         label: "Workouts",
         icon: Dumbbell,
-        href: "/athlete/workouts",
+        href: `/${currentRole}/workouts`,
       },
       {
         label: "Scholarships",
         icon: Graduation,
-        href: "/scholarships",
+        href: `/${currentRole}/scholarships`,
       },
     ],
     coach: [
       {
         label: "My Athletes",
         icon: Users,
-        href: "/coach/athletes",
+        href: `/${currentRole}/athletes`,
       },
       {
         label: "Training Plans",
         icon: FileText,
-        href: "/coach/training-plans",
+        href: `/${currentRole}/training-plans`,
       },
       {
         label: "Team Management",
         icon: Users,
-        href: "/coach/teams",
+        href: `/${currentRole}/teams`,
       },
       {
         label: "Performance Analytics",
         icon: BarChart3,
-        href: "/coach/analytics",
+        href: `/${currentRole}/analytics`,
       },
     ],
     scout: [
       {
         label: "Athlete Database",
         icon: Users,
-        href: "/scout/athletes",
+        href: `/${currentRole}/athletes`,
       },
       {
         label: "Watchlist",
         icon: Trophy,
-        href: "/scout/watchlist",
+        href: `/${currentRole}/watchlist`,
       },
       {
         label: "Scouting Reports",
         icon: FileText,
-        href: "/scout/reports",
+        href: `/${currentRole}/reports`,
       },
       {
         label: "Venues",
         icon: MapPin,
-        href: "/scout/venues",
+        href: `/${currentRole}/venues`,
       },
     ],
     admin: [
       {
         label: "User Management",
         icon: Users,
-        href: "/admin/users",
+        href: `/${currentRole}/users`,
       },
       {
         label: "Content Management",
         icon: FileText,
-        href: "/admin/content",
+        href: `/${currentRole}/content`,
       },
       {
         label: "Analytics",
         icon: BarChart3,
-        href: "/admin/analytics",
+        href: `/${currentRole}/analytics`,
       },
       {
         label: "System Settings",
         icon: Settings,
-        href: "/admin/settings",
+        href: `/${currentRole}/settings`,
       },
     ],
   }
   
-  // Combine base routes with role-specific routes
-  const routes = [
+  // Get role-specific routes based on current role
+  const currentRoleRoutes = roleRoutes[currentRole as keyof RoleRoutes] || []
+  
+  // Combine all routes
+  const routes: Route[] = [
     ...baseRoutes,
-    ...(user?.role && roleRoutes[user.role as keyof typeof roleRoutes] ? roleRoutes[user.role as keyof typeof roleRoutes] : []),
+    ...currentRoleRoutes,
     {
       label: "Settings",
       icon: Settings,
-      href: "/settings",
+      href: `/${currentRole}/settings`,
     },
   ]
 
+  // Check if route is active
+  const isActive = (href: string) => {
+    return pathname === href || pathname.startsWith(`${href}/`)
+  }
+
   return (
-    <div className="flex flex-col h-screen border-r bg-background w-64">
+    <div className="flex flex-col h-full border-r bg-background w-64">
       <div className="p-6">
         <Logo size="lg" />
       </div>
-      <div className="flex-1 px-3 py-2 space-y-1">
+      <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
         {routes.map((route) => (
           <Button
             key={route.href}
-            variant={pathname === route.href ? "secondary" : "ghost"}
+            variant={isActive(route.href) ? "secondary" : "ghost"}
             className={cn(
-              "w-full justify-start",
-              pathname === route.href && "bg-kas-green/10 text-kas-green hover:bg-kas-green/20 hover:text-kas-green",
+              "w-full justify-start transition-colors",
+              isActive(route.href) && "bg-kas-green/10 text-kas-green hover:bg-kas-green/20"
             )}
             asChild
           >
@@ -177,14 +217,16 @@ export function Sidebar() {
             </Link>
           </Button>
         ))}
-      </div>
+      </nav>
       <div className="p-4 border-t">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Link 
+          href="/support" 
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+        >
           <MessageSquare className="h-4 w-4" />
           <span>Need help? Contact support</span>
-        </div>
+        </Link>
       </div>
     </div>
   )
 }
-
