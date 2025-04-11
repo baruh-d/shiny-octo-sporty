@@ -1,10 +1,17 @@
-import type React from "react"
+// app/components/dashboard-shell.tsx
+import * as React from "react"
+
 interface DashboardShellProps {
   children: React.ReactNode
+  className?: string
 }
 
-export function DashboardShell({ children }: DashboardShellProps) {
-  return <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">{children}</div>
+export function DashboardShell({ children, className }: DashboardShellProps) {
+  return (
+    <div className={`flex-1 space-y-6 p-6 md:p-8 ${className || ""}`}>
+      <div className="flex flex-col space-y-6">
+        {children}
+      </div>
+    </div>
+  )
 }
-
-// Compare this snippet from sports/my-sports-app/src/app/components/dashboard-shell.tsx:

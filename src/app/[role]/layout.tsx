@@ -24,7 +24,7 @@ export default function RoleLayout({
     coach: "Coach Dashboard",
     scout: "Scout Dashboard",
     admin: "Admin Dashboard",
-  }[params.role]
+  }[params.role] || "Dashboard"
 
   return (
     <div className="flex min-h-screen">

@@ -1,19 +1,28 @@
-import type React from "react"
+// app/components/dashboard-header.tsx
+import * as React from "react"
+
 interface DashboardHeaderProps {
   heading: string
   text?: string
   children?: React.ReactNode
 }
 
-export function DashboardHeader({ heading, text, children }: DashboardHeaderProps) {
+export function DashboardHeader({
+  heading,
+  text,
+  children,
+}: DashboardHeaderProps) {
   return (
-    <div className="flex items-center justify-between px-2">
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="grid gap-1">
-        <h1 className="font-bold text-3xl md:text-4xl">{heading}</h1>
-        {text && <p className="text-lg text-muted-foreground">{text}</p>}
+        <h1 className="text-2xl font-bold tracking-tight">{heading}</h1>
+        {text && <p className="text-muted-foreground">{text}</p>}
       </div>
-      {children}
+      {children && (
+        <div className="flex items-center gap-2">
+          {children}
+        </div>
+      )}
     </div>
   )
 }
-

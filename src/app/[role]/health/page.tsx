@@ -2,8 +2,8 @@ import { DashboardHeader } from "@/app/components/dashboard-header"
 import { DashboardShell } from "@/app/components/dashboard-shell"
 import { HealthOverview } from "./health-overview"
 import { SleepAnalytics } from "./sleep-analytics"
-import { NutritionTracking } from "./nutrition-tracking"
-import { RecoveryMonitoring } from ".recovery-monitoring"
+// import { NutritionTracking } from "./nutrition-tracking"
+// import { RecoveryMonitoring } from ".recovery-monitoring"
 
 export default function HealthPage() {
   return (
@@ -15,8 +15,8 @@ export default function HealthPage() {
       
       <HealthOverview />
       <SleepAnalytics />
-      <NutritionTracking />
-      <RecoveryMonitoring />
+      {/* <NutritionTracking />
+      <RecoveryMonitoring /> */}
     </DashboardShell>
   )
 }

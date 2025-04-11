@@ -1,10 +1,10 @@
 "use client"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { HealthMetricsGrid } from "./health-metrics-grid"
+import { HealthMetricsGrid } from "./health-metrics"
 import { WeeklyHealthTrends } from "./weekly-health-trends"
-import { InjuryPrevention } from "./injury-prevention"
-import { WellnessReminders } from "./wellness-reminders"
+// import { InjuryPrevention } from "./injury-prevention"
+// import { WellnessReminders } from "./wellness-reminders"
 
 export function HealthOverview() {
   return (
@@ -17,8 +17,8 @@ export function HealthOverview() {
         <HealthMetricsGrid />
         <WeeklyHealthTrends />
         <div className="grid gap-4 md:grid-cols-2">
-          <InjuryPrevention />
-          <WellnessReminders />
+          {/* <InjuryPrevention />
+          <WellnessReminders /> */}
         </div>
       </TabsContent>
     </Tabs>

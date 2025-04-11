@@ -17,6 +17,7 @@ import {
   Video, 
   BookOpen, 
   Heart, 
+  HeartPulse,
   Dumbbell, 
   Utensils, 
   FileText, 
@@ -76,6 +77,11 @@ export function Sidebar() {
       label: "Meal Plans",
       icon: Utensils,
       href: `/${currentRole}/meal-plans`,
+    },
+    {
+      label: "Health",
+      icon: HeartPulse, 
+      href: `/${currentRole}/health`, 
     },
     {
       label: "Donations",
