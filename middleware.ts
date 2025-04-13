@@ -1,38 +1,89 @@
-// import { NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 // import type { NextRequest } from "next/server"
+// Commented out import to avoid errors if file doesn't exist yet
+// import { createServerSupabaseClient } from "@/lib/supabase/server"
 
-// // This function can be marked `async` if using `await` inside
-// export function middleware(request: NextRequest) {
-//   // TEMPORARILY DISABLED FOR DEVELOPMENT
-//   // Uncomment the following code when ready to enable authentication
-  
-//   /*
-//   const session = request.cookies.get("session")?.value
-  
-//   // If the user is not logged in and trying to access a protected route
-//   if (!session && !request.nextUrl.pathname.startsWith("/auth")) {
-//     return NextResponse.redirect(new URL("/auth/signin", request.url))
-//   }
-  
-//   // If the user is logged in and trying to access auth routes
-//   if (session && request.nextUrl.pathname.startsWith("/auth")) {
-//     return NextResponse.redirect(new URL("/dashboard", request.url))
-//   }
-//   */
-  
-//   return NextResponse.next()
-// }
+// Define routes - kept for reference
+// const PUBLIC_ROUTES = ['/', '/about', '/blog', '/events', '/programs', '/contact']
+// const AUTH_ROUTES = ['/auth/signin', '/auth/signup', '/auth/forgot-password', '/auth/reset-password']
+// const PROTECTED_ROLES = ['admin', 'athlete', 'coach', 'scout']
 
-// // See "Matching Paths" below to learn more
-// export const config = {
-//   matcher: [
-//     // Match all request paths except for the ones starting with:
-//     // - api (API routes)
-//     // - _next/static (static files)
-//     // - _next/image (image optimization files)
-//     // - favicon.ico (favicon file)
-//     // - public folder
-//     "/((?!api|_next/static|_next/image|favicon.ico|manifest.json|icons|images).*)",
-//   ],
-// }
+export async function middleware() {
+  // Development mode: Skip all auth checks and allow free navigation
+  return NextResponse.next();
+  
+  /* ORIGINAL AUTH LOGIC - COMMENTED OUT FOR DEVELOPMENT
+  const supabase = createServerSupabaseClient()
+  const { data: { session }, error } = await supabase.auth.getSession()
+  const pathname = request.nextUrl.pathname
 
+  // Handle auth errors
+  if (error) {
+    console.error('Auth error:', error)
+    return NextResponse.redirect(new URL('/error?code=auth_failed', request.url))
+  }
+
+  // Public routes - no auth required
+  if (PUBLIC_ROUTES.some(route => pathname.startsWith(route))) {
+    return NextResponse.next()
+  }
+
+  // Auth routes handling
+  if (AUTH_ROUTES.some(route => pathname.startsWith(route))) {
+    if (session) {
+      const redirectUrl = getRoleBasedRedirect(session.user?.user_metadata?.role)
+      return NextResponse.redirect(new URL(redirectUrl, request.url))
+    }
+    return NextResponse.next()
+  }
+
+  // Protected routes - require auth
+  if (!session) {
+    const redirectUrl = new URL('/auth/signin', request.url)
+    redirectUrl.searchParams.set('redirect', pathname)
+    return NextResponse.redirect(redirectUrl)
+  }
+
+  // Role validation
+  const userRole = session.user?.user_metadata?.role
+  if (!userRole || !PROTECTED_ROLES.includes(userRole)) {
+    return NextResponse.redirect(new URL('/unauthorized', request.url))
+  }
+
+  // Role-based route protection
+  for (const role of PROTECTED_ROLES) {
+    if (pathname.startsWith(`/${role}`) && userRole !== role) {
+      return NextResponse.redirect(new URL('/unauthorized', request.url))
+    }
+  }
+
+  // Add security headers
+  const response = NextResponse.next()
+  response.headers.set('X-Frame-Options', 'DENY')
+  response.headers.set('X-Content-Type-Options', 'nosniff')
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+
+  return response
+  */
+}
+
+/* 
+// Role-based redirect function - commented out for development
+type UserRole = 'admin' | 'athlete' | 'coach' | 'scout';
+
+function getRoleBasedRedirect(role?: UserRole): string {
+  const defaultRoutes = {
+    admin: '/admin/dashboard',
+    athlete: '/athlete/performance',
+    coach: '/coach/athletes',
+    scout: '/scout/talent-spotlight',
+  }
+  return role ? defaultRoutes[role] || '/' : '/'
+}
+*/
+
+export const config = {
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico|manifest.json|icons|images|sw.js|workbox-*.js).*)",
+  ],
+}

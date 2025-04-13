@@ -1,18 +1,18 @@
 // app/not-found.tsx
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function NotFound() {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
+    <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader>
           <CardTitle className="text-2xl">Page Not Found</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-gray-600">
-            Sorry, the page you were looking for doesn&apos;t exist or has been moved.
+          <p className="text-gray-600 dark:text-gray-300">
+            Sorry, the page you were looking for doesn't exist or has been moved.
           </p>
         </CardContent>
         <CardFooter>
@@ -24,5 +24,5 @@ export default function NotFound() {
         </CardFooter>
       </Card>
     </div>
-  );
+  )
 }

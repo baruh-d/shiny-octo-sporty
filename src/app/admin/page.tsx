@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DashboardHeader } from "@/app/components/dashboard-header"
-import { DashboardShell } from "@/app/components/dashboard-shell"
-import { CalendarDays, Gift, ShieldCheck, Users, AlertTriangle, CheckCircle2, Settings } from "lucide-react"
+import { CalendarDays, Gift, ShieldCheck, Users, AlertTriangle, CheckCircle2 } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 
 // Placeholder data - will come from API in full implementation
@@ -71,24 +70,27 @@ const dashboardData = {
 }
 
 export default function AdminDashboard() {
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Simulate loading state
+  setTimeout(() => {
+    setIsLoading(false)
+  }, 1500)
 
   return (
-    <DashboardShell>
-      <DashboardHeader heading="Admin Dashboard" text="Platform overview and management.">
-        <Button>
-          <Settings className="h-4 w-4 mr-2" />
-          Platform Settings
-        </Button>
-      </DashboardHeader>
+    <>
+    <DashboardHeader 
+      heading="Admin Dashboard" 
+      text="Platform overview and management"
+    />
 
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4 md:w-auto">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="events">Events</TabsTrigger>
-          <TabsTrigger value="reports">Reports</TabsTrigger>
-        </TabsList>
+    <Tabs defaultValue="overview" className="space-y-6">
+      <TabsList>
+        <TabsTrigger value="overview">Overview</TabsTrigger>
+        <TabsTrigger value="users">Users</TabsTrigger>
+        <TabsTrigger value="events">Events</TabsTrigger>
+        <TabsTrigger value="reports">Reports</TabsTrigger>
+      </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
           {isLoading ? (
@@ -263,7 +265,7 @@ export default function AdminDashboard() {
           </Card>
         </TabsContent>
       </Tabs>
-    </DashboardShell>
+    </>
   )
 }
 

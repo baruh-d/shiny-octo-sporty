@@ -24,6 +24,9 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 142 76% 36%;
     --radius: 0.5rem;
+    --unauthorized-bg: 0 0% 100%;
+    --unauthorized-text: 222.2 84% 4.9%;
+    --unauthorized-primary: 221.2 83.2% 53.3%;
 
     /* Custom KAS colors */
     --kas-green: 142 76% 36%;
@@ -51,6 +54,9 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 142 70% 50%;
+    --unauthorized-bg: 222.2 84% 4.9%;
+    --unauthorized-text: 210 40% 98%;
+    --unauthorized-primary: 217.2 91.2% 59.8%;
   }
 }
 

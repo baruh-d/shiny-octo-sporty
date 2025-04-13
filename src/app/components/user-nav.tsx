@@ -1,3 +1,4 @@
+// components/user-nav.tsx
 "use client"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -12,22 +13,40 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useAuth } from "@/app/components/auth/auth-provider"
-import { useSelector } from "react-redux"
-import type { RootState } from "@/lib/redux/store"
+import { User, Medal, FileText, Settings, LogOut } from "lucide-react"
 import Link from "next/link"
-import { User, Medal, FileText } from "lucide-react"
+import { useAuth } from "@/app/components/auth/auth-provider"
+import { SignOutButton } from "@/app/auth/signout-button"
 
 export function UserNav() {
-  const { signOut } = useAuth()
-  const user = useSelector((state: RootState) => state.auth.user)
+  const { user, userDetails } = useAuth()
 
-  // Get the first letter of the email for the avatar fallback
   const getInitial = () => {
-    if (user?.email) {
-      return user.email.charAt(0).toUpperCase()
-    }
+    if (user?.email) return user.email.charAt(0).toUpperCase()
+    if (userDetails?.first_name) return userDetails.first_name.charAt(0).toUpperCase()
     return "U"
+  }
+
+  const roleSpecificItems = () => {
+    switch(userDetails?.role) {
+      case 'athlete':
+        return [
+          { icon: Medal, label: "Performance", href: "/athlete/performance" },
+          { icon: FileText, label: "Training Plans", href: "/athlete/training" }
+        ]
+      case 'coach':
+        return [
+          { icon: User, label: "My Athletes", href: "/coach/athletes" },
+          { icon: FileText, label: "Training Plans", href: "/coach/training" }
+        ]
+      case 'admin':
+        return [
+          { icon: User, label: "User Management", href: "/admin/users" },
+          { icon: Settings, label: "System Settings", href: "/admin/settings" }
+        ]
+      default:
+        return []
+    }
   }
 
   return (
@@ -35,16 +54,27 @@ export function UserNav() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarImage src="/avatars/01.png" alt={user?.email || "User"} />
-            <AvatarFallback>{getInitial()}</AvatarFallback>
+            <AvatarImage 
+              src={userDetails?.avatar_url || "/avatars/default.png"} 
+              alt={user?.email || "User"} 
+            />
+            <AvatarFallback className="bg-kas-green text-white">
+              {getInitial()}
+            </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user?.email}</p>
-            <p className="text-xs leading-none text-muted-foreground capitalize">{user?.role || "User"}</p>
+            <p className="text-sm font-medium leading-none">
+              {userDetails?.first_name || user?.email || "User"}
+            </p>
+            {userDetails?.role && (
+              <p className="text-xs leading-none text-muted-foreground capitalize">
+                {userDetails.role}
+              </p>
+            )}
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -57,47 +87,24 @@ export function UserNav() {
             </Link>
           </DropdownMenuItem>
           
-          {user?.role === 'athlete' && (
-            <>
-              <DropdownMenuItem asChild>
-                <Link href="/athlete/performance">
-                  <Medal className="mr-2 h-4 w-4" />
-                  <span>Performance</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/athlete/training">
-                  <FileText className="mr-2 h-4 w-4" />
-                  <span>Training Plans</span>
-                </Link>
-              </DropdownMenuItem>
-            </>
-          )}
-          
-                {user?.role === 'coach' && (
-                  <>
-                    <DropdownMenuItem asChild>
-                      <Link href="/coach/athletes">
-                        <User className="mr-2 h-4 w-4" />
-                        <span>My Athletes</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/coach/training">
-                        <FileText className="mr-2 h-4 w-4" />
-                        <span>Training Plans</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={signOut}>
-                <span>Log out</span>
-                <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-              )
-            }
-
+          {roleSpecificItems().map((item) => (
+            <DropdownMenuItem key={item.href} asChild>
+              <Link href={item.href}>
+                <item.icon className="mr-2 h-4 w-4" />
+                <span>{item.label}</span>
+              </Link>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <SignOutButton className="w-full">
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>Log out</span>
+            <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+          </SignOutButton>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}

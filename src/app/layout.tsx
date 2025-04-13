@@ -7,6 +7,7 @@ import ReduxProvider from "@/lib/redux/provider"
 import { AuthProvider } from "@/app/components/auth/auth-provider"
 import { TopNavbar } from "@/app/components/top-navbar"
 import { Footer } from "@/app/components/footer"
+import { Toaster } from "@/components/toaster"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -82,6 +83,7 @@ export default function RootLayout({
               <div className="flex min-h-screen flex-col">
                 <TopNavbar />
                 {children}
+                <Toaster />
                 <Footer />
               </div>
             </AuthProvider>
