@@ -1,9 +1,9 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState, useCallback } from "react"
-import { useRouter } from "next/navigation"
+import { createContext, useContext, useState, useCallback } from "react"
+// import { useRouter } from "next/navigation"
 import type { Session, User } from "@supabase/supabase-js"
-import { supabase } from "@/lib/supabase/client"
+// import { supabase } from "@/lib/supabase/client"
 
 type UserRole = "admin" | "athlete" | "coach" | "scout" | null
 
@@ -26,14 +26,49 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+// Mock data for development
+const mockUser: User = {
+  id: 'dev-user-123',
+  email: 'dev@example.com',
+  user_metadata: { role: 'admin' },
+  app_metadata: {},
+  aud: 'authenticated',
+  created_at: new Date().toISOString()
+} as User
+
+const mockUserDetails = {
+  id: 'dev-user-123',
+  role: 'admin' as UserRole,
+  first_name: 'Dev',
+  last_name: 'User',
+  avatar_url: '/placeholder.svg'
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  /* ===== DEVELOPMENT MODE - COMMENT OUT WHEN RESTORING AUTH ===== */
+  const [user] = useState<User | null>(mockUser)
+  const [userDetails] = useState<UserDetails>(mockUserDetails)
+  const [session] = useState<Session | null>({} as Session)
+  const [isLoading] = useState(false)
+  
+  const signOut = useCallback(async () => {
+    console.log('[DEV] Sign out called')
+    return Promise.resolve()
+  }, [])
+
+  const refreshAuth = useCallback(async () => {
+    console.log('[DEV] Auth refresh called')
+    return Promise.resolve()
+  }, [])
+
+  /* ===== PRODUCTION MODE - COMMENT THIS BLOCK FOR DEVELOPMENT ===== */
+  /*
   const [user, setUser] = useState<User | null>(null)
   const [userDetails, setUserDetails] = useState<UserDetails>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
-  // Handle sign out logic
   const handleSignOut = useCallback(async () => {
     setSession(null)
     setUser(null)
@@ -42,7 +77,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push("/auth/signin")
   }, [router])
 
-  // Fetch user details from profiles table
   const fetchUserDetails = useCallback(async (userId: string) => {
     try {
       const { data: profileData, error } = await supabase
@@ -59,7 +93,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  // Handle storage events for multi-tab sync
   const handleStorageEvent = useCallback((event: StorageEvent) => {
     if (event.key === 'supabase-auth-event') {
       const { event: authEvent, session: newSession } = JSON.parse(event.newValue || '{}')
@@ -74,7 +107,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [fetchUserDetails, handleSignOut])
 
-  // Main auth refresh function
   const refreshAuth = useCallback(async () => {
     setIsLoading(true)
     try {
@@ -87,8 +119,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (currentSession?.user) {
         await fetchUserDetails(currentSession.user.id)
-        
-        // Broadcast login to other tabs
         localStorage.setItem('supabase-auth-event', JSON.stringify({
           event: 'SIGNED_IN',
           session: currentSession
@@ -104,30 +134,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [fetchUserDetails, handleSignOut])
 
-  // Sign out function exposed to consumers
   const signOut = useCallback(async () => {
     try {
       const { error } = await supabase.auth.signOut()
       if (error) throw error
-      
-      // Broadcast logout to other tabs
       localStorage.setItem('supabase-auth-event', JSON.stringify({
         event: 'SIGNED_OUT',
         session: null
       }))
-      
       await handleSignOut()
     } catch (error) {
       console.error("Sign out error:", error)
     }
   }, [handleSignOut])
 
-  // Set up auth state listener and storage event listener
   useEffect(() => {
-    // Initialize auth state
     refreshAuth()
-
-    // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_OUT') {
         await handleSignOut()
@@ -135,34 +157,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(session)
         setUser(session.user)
         await fetchUserDetails(session.user.id)
-        
-        // Broadcast auth change to other tabs
         localStorage.setItem('supabase-auth-event', JSON.stringify({
           event,
           session
         }))
       }
     })
-
-    // Set up storage event listener for multi-tab sync
     window.addEventListener('storage', handleStorageEvent)
-
     return () => {
       subscription.unsubscribe()
       window.removeEventListener('storage', handleStorageEvent)
     }
   }, [refreshAuth, handleSignOut, fetchUserDetails, handleStorageEvent])
+  */
 
-  const value = {
-    user,
-    userDetails,
-    session,
-    isLoading,
-    signOut,
-    refreshAuth,
-  }
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider value={{
+      user,
+      userDetails,
+      session,
+      isLoading,
+      signOut,
+      refreshAuth
+    }}>
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
 export const useAuth = () => {

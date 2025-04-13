@@ -4,7 +4,7 @@ import { Sidebar } from "@/app/components/sidebar"
 import { UserNav } from "@/app/components/user-nav"
 import { ThemeToggle } from "@/app/components/theme-toggle"
 import { Logo } from "@/app/components/logo"
-import { notFound } from "next/navigation"
+// import { notFound } from "next/navigation"
 
 export default function RoleLayout({
   children,
@@ -13,11 +13,11 @@ export default function RoleLayout({
   children: React.ReactNode
   params: { role: "athlete" | "coach" | "scout" | "admin" }
 }) {
-  // Validate role against existing folder structure
-  const validRoles = ["athlete", "coach", "scout", "admin"]
-  if (!validRoles.includes(params.role)) {
-    notFound()
-  }
+  // // Validate role against existing folder structure
+  // const validRoles = ["athlete", "coach", "scout", "admin"]
+  // if (!validRoles.includes(params.role)) {
+  //   notFound()
+  // }
 
   // Role-specific titles
   const roleTitles = {

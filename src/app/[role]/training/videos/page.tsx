@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { VideoGallery } from "@/components/video/video-gallery"
+// import { VideoGallery } from "@/components/video/video-gallery"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BackgroundImage } from "@/components/ui/background-image"
@@ -30,7 +30,7 @@ export default function TrainingVideosPage() {
           <TabsTrigger value="tactics">Tactics</TabsTrigger>
         </TabsList>
         <TabsContent value="all" className="mt-6">
-          <VideoGallery />
+          {/* <VideoGallery /> */}
         </TabsContent>
         <TabsContent value="technique" className="mt-6">
           <Card>
