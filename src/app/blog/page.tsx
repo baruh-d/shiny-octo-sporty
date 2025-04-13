@@ -35,14 +35,17 @@ export default function BlogPage() {
     const categories: { id: number; slug: string; name: string; count: number }[] = [];
     const tags: { id: number; slug: string; name: string }[] = [];
 
-    return (
-        <div className="grid gap-8 md:grid-cols-4">
-        <div className="md:col-span-3">
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    console.log('Rendering BlogPage component');
+    console.log('Posts:', posts);
+    console.log('Categories:', categories);
+    console.log('Tags:', tags);
 
-                                    {posts.map((post: WPPost) => (
-                                        <Card key={post.id} className="overflow-hidden">
+    return (
+      <div className="container mx-auto py-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:col-span-2">
+          <div className="grid gap-6 sm:grid-cols-2">
+            {posts.map((post: WPPost) => (
+              <Card key={post.id} className="overflow-hidden">
                                             <div className="aspect-video relative">
                                                 <Image
                                                     src={post._embedded?.["wp:featuredmedia"]?.[0]?.source_url || "/placeholder.svg?height=200&width=300"}
@@ -68,11 +71,12 @@ export default function BlogPage() {
                                                     <Link href={`/blog/${post.slug}`}>Read More</Link>
                                                 </Button>
                                             </CardFooter>
-                                        </Card>
-                                    ))}
+              </Card>
+            ))}
           </div>
         </div>
-        
+
+        <div>
         <div>
           <div className="space-y-6">
             <Card>
