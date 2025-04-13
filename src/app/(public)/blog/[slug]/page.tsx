@@ -1,5 +1,4 @@
 import type { Metadata } from "next"
-import type { PageProps } from 'next' // Add this import
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
@@ -20,11 +19,11 @@ export interface Event {
 }
 
 // Update Props to extend PageProps
-type Props = PageProps<{ slug: string }> & {
+// Props type definition
+type Props = {
   params: { slug: string }
   searchParams: { [key: string]: string | string[] | undefined }
 }
-
 // Generate static params
 export async function generateStaticParams() {
   try {
