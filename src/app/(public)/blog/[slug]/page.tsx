@@ -5,7 +5,7 @@ import { notFound } from "next/navigation"
 import { Calendar, MapPin, Clock, Users, ArrowLeft } from "lucide-react"
 import { EventsService } from "@/lib/services/events-service"
 
-// Add proper type definitions
+// Type definitions
 export interface Event {
   slug: string
   title: string
@@ -18,14 +18,12 @@ export interface Event {
   image?: string
 }
 
-interface EventPageProps {
-  params: {
-    slug: string
-  }
+type Props = {
+  params: { slug: string }
   searchParams: { [key: string]: string | string[] | undefined }
 }
 
-// Update generateStaticParams to handle errors better
+// Generate static params
 export async function generateStaticParams() {
   try {
     const events = await EventsService.getEvents()
@@ -38,8 +36,10 @@ export async function generateStaticParams() {
   }
 }
 
-// Update metadata generation with proper error handling
-export async function generateMetadata({ params }: EventPageProps): Promise<Metadata> {
+// Metadata generation
+export async function generateMetadata(
+  { params }: Props
+): Promise<Metadata> {
   try {
     const event = await EventsService.getEventBySlug(params.slug)
 
@@ -80,8 +80,8 @@ export async function generateMetadata({ params }: EventPageProps): Promise<Meta
   }
 }
 
-// Update the main component with proper error handling
-export default async function EventPage({ params }: EventPageProps) {
+// Main component
+export default async function EventPage({ params }: Props) {
   try {
     const event = await EventsService.getEventBySlug(params.slug)
     
