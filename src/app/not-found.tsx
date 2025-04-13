@@ -12,7 +12,7 @@ export default function NotFound() {
         </CardHeader>
         <CardContent>
           <p className="text-gray-600 dark:text-gray-300">
-            Sorry, the page you were looking for doesn't exist or has been moved.
+            Sorry, the page you were looking for doesn&apos;t exist or has been moved.
           </p>
         </CardContent>
         <CardFooter>

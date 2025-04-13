@@ -87,6 +87,7 @@ export function Dropzone({
 
   const getFileIcon = (file: File) => {
     if (file.type.startsWith("image/")) {
+      // eslint-disable-next-line jsx-a11y/alt-text
       return <Image className="h-6 w-6 text-kas-green" />
     } else if (file.type.startsWith("video/")) {
       return <Film className="h-6 w-6 text-kas-blue" />
