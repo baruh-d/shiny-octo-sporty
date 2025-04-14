@@ -29,6 +29,10 @@ const WordPressService = {
     return posts.slice(startIndex, startIndex + perPage)
   },
   getPostBySlug: async (slug: string) => {
+    // Use the slug to identify which post to return
+    if (slug !== "sample-post") {
+      return null;
+    }
     return {
       title: { rendered: "Sample Post" },
       content: { rendered: "<p>This is a sample post content.</p>" },
@@ -131,6 +135,17 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
     return (
       <div className="container mx-auto py-10 px-4 md:px-6">
+        <div className="flex flex-wrap gap-2 mb-4">
+          {categories.map((category: { id: number; slug: string; name: string }) => (
+            <Link
+              key={category.id}
+              href={`/blog/category/${category.slug}`}
+              className="text-sm bg-primary text-primary-foreground px-2 py-1 rounded-md hover:bg-primary/90"
+            >
+              {category.name}
+            </Link>
+          ))}
+        </div>
         <Link href="/blog" className="inline-flex items-center mb-6 text-sm hover:text-primary">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to all posts
@@ -167,7 +182,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           {tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-8">
               <Tag className="h-5 w-5 text-muted-foreground" />
-              {tags.map((tag: any) => (
+              {tags.map((tag: { id: number; slug: string; name: string }) => (
                 <Link
                   key={tag.id}
                   href={`/blog/tag/${tag.slug}`}
