@@ -167,7 +167,7 @@ export async function generateStaticParams() {
 }
 
 // Update metadata generation
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   try {
     const post = await WordPressService.getPostBySlug(params.slug)
 
@@ -218,7 +218,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 // Update the page component
-export default async function BlogPostPage({ params }: { params: { slug: string } }) {
+export default async function BlogPostPage({ params }: PageProps) {
   try {
     const post = await WordPressService.getPostBySlug(params.slug)
 
