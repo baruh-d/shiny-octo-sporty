@@ -27,7 +27,7 @@ interface PageProps {
   params: {
     slug: string
   }
-  searchParams?: { [key: string]: string | string[] | undefined }
+  searchParams?: Record<string, string | string[] | undefined>
 }
 
 // Mock WordPress Service for development (remove when actual service is implemented)
@@ -160,19 +160,14 @@ const WordPressService = {
 
 // Generate static params for all blog posts
 export async function generateStaticParams() {
-  try {
-    const posts = await WordPressService.getPosts(1, 100)
-    return posts.map((post) => ({
-      slug: post.slug,
-    }))
-  } catch (error) {
-    console.error("Error generating static params:", error)
-    return []
-  }
+  const posts = await WordPressService.getPosts(1, 100)
+  return posts.map((post) => ({
+    slug: post.slug || '',
+  }))
 }
 
 // Update metadata generation
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   try {
     const post = await WordPressService.getPostBySlug(params.slug)
 
@@ -223,7 +218,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 // Update the page component
-export default async function BlogPostPage({ params }: PageProps) {
+export default async function BlogPostPage({ params }: { params: { slug: string } }) {
   try {
     const post = await WordPressService.getPostBySlug(params.slug)
 
