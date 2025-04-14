@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { AuthForm } from "@/app/components/auth/auth-form"
+import { AuthClientWrapper } from '@/app/components/auth/auth-client-wrapper'
 
 export const metadata: Metadata = {
   title: "Sign Up | Sports Academy Hub",
@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 }
 
 export default function SignUpPage() {
-  return <AuthForm type="signup" />
+  return <AuthClientWrapper type="signup" />
 }
 
 // This page is for signing up users. It uses the AuthForm component and passes the type "signup" to it.

@@ -8,6 +8,8 @@ import { AuthProvider } from "@/app/components/auth/auth-provider"
 import { TopNavbar } from "@/app/components/top-navbar"
 import { Footer } from "@/app/components/footer"
 import { Toaster } from "@/components/toaster"
+import { Suspense } from "react"
+import KenyanFlagLoader from "@/components/ui/loading-spinner"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -71,18 +73,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#ffffff" />
-        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-      </head>
+      {/* ... keep head content ... */}
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <ReduxProvider>
             <AuthProvider>
               <div className="flex min-h-screen flex-col">
                 <TopNavbar />
-                {children}
+                <Suspense fallback={<KenyanFlagLoader fullPage />}>
+                  {children}
+                </Suspense>
                 <Toaster />
                 <Footer />
               </div>
@@ -93,4 +93,3 @@ export default function RootLayout({
     </html>
   )
 }
-

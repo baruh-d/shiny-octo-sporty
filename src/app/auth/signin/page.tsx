@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { AuthForm } from "@/app/components/auth/auth-form"
+import { AuthClientWrapper } from '@/app/components/auth/auth-client-wrapper'
 
 export const metadata: Metadata = {
   title: "Sign In | Sports Academy Hub",
@@ -7,6 +7,6 @@ export const metadata: Metadata = {
 }
 
 export default function SignInPage() {
-  return <AuthForm type="signin" />
+  return <AuthClientWrapper type="signin" />
 }
 
