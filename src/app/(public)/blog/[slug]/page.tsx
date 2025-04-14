@@ -6,15 +6,28 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { CalendarDays, User, ArrowLeft, Tag } from "lucide-react"
 
-// Define the params type correctly for Next.js pages
-type Params = {
-  slug: string
+// Define WordPress post types
+interface WPPost {
+  id?: number
+  slug?: string
+  title: { rendered: string }
+  excerpt: { rendered: string }
+  content: { rendered: string }
+  date: string
+  modified?: string
+  _embedded?: {
+    "wp:featuredmedia"?: [{ source_url: string }]
+    author?: [{ name: string }]
+    "wp:term"?: Array<Array<{ id: number; name: string; slug: string }>>
+  }
 }
 
-// Define correct page props type for Next.js App Router
-type BlogPostPageProps = {
-  params: Params
-  searchParams: Record<string, string | string[] | undefined>
+// Define page props according to Next.js 14 requirements
+interface PageProps {
+  params: {
+    slug: string
+  }
+  searchParams?: { [key: string]: string | string[] | undefined }
 }
 
 // Mock WordPress Service for development (remove when actual service is implemented)
@@ -62,7 +75,7 @@ const WordPressService = {
   },
   getPostBySlug: async (slug: string) => {
     // Sample post data based on slug
-    const postData = {
+    const postData: Record<string, WPPost> = {
       "sample-post": {
         title: { rendered: "Sample Post" },
         content: { rendered: "<p>This is a sample post content.</p><p>This is another paragraph in the sample post content.</p>" },
@@ -139,44 +152,27 @@ const WordPressService = {
         }
       }
     };
-
-    type PostData = {
-      [key: string]: {
-        title: { rendered: string };
-        content: { rendered: string };
-        excerpt: { rendered: string };
-        date: string;
-        modified: string;
-        _embedded: {
-          "wp:featuredmedia": { source_url: string }[];
-          "author": { name: string }[];
-          "wp:term": { id: number; name: string; slug: string }[][];
-        };
-      };
-    };
-
-    const typedPostData = postData as PostData;
-
+    
     // Return the post data or null if not found
-    return typedPostData[slug] || null;
+    return postData[slug] || null;
   }
 }
 
 // Generate static params for all blog posts
-export async function generateStaticParams(): Promise<Params[]> {
+export async function generateStaticParams() {
   try {
     const posts = await WordPressService.getPosts(1, 100)
     return posts.map((post) => ({
       slug: post.slug,
     }))
   } catch (error) {
-    console.error("Error generating static params for blog posts:", error)
+    console.error("Error generating static params:", error)
     return []
   }
 }
 
-// Generate metadata for each blog post
-export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
+// Update metadata generation
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   try {
     const post = await WordPressService.getPostBySlug(params.slug)
 
@@ -226,7 +222,8 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   }
 }
 
-export default async function BlogPostPage({ params }: BlogPostPageProps) {
+// Update the page component
+export default async function BlogPostPage({ params }: PageProps) {
   try {
     const post = await WordPressService.getPostBySlug(params.slug)
 
