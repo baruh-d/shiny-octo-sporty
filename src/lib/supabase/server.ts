@@ -2,8 +2,7 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { cache } from "react";
-
-type UserRole = "admin" | "coach" | "athlete" | "scout";
+import { UserRole } from "@/types/auth";
 
 interface UserProfile {
   id: string;
@@ -58,7 +57,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
       .from("user_profiles")
       .select("*")
       .eq("id", userId)
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
     return data;
