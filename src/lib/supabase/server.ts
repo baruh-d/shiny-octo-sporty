@@ -14,6 +14,10 @@ interface UserProfile {
   created_at: string;
 }
 
+function logError(context: string, error: unknown) {
+  console.error(`[Supabase][${context}]`, error instanceof Error ? error.message : error);
+}
+
 export const createServerSupabaseClient = cache(() => {
   const cookieStore = cookies();
 
@@ -37,21 +41,20 @@ export const createServerSupabaseClient = cache(() => {
   );
 });
 
-// Updated helper functions to handle async client creation
-// Helper functions remain synchronous since createServerSupabaseClient is cached
 export async function getSession() {
-  const supabase = createServerSupabaseClient(); // No await needed
+  const supabase = createServerSupabaseClient();
   try {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) throw error;
     return session;
   } catch (error) {
-    console.error("Error getting session:", error);
+    logError("getSession", error);
     return null;
   }
 }
 
 export async function getUserProfile(userId: string): Promise<UserProfile | null> {
-  const supabase = createServerSupabaseClient(); // No await needed
+  const supabase = createServerSupabaseClient();
   try {
     const { data, error } = await supabase
       .from("user_profiles")
@@ -62,22 +65,27 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
     if (error) throw error;
     return data;
   } catch (error) {
-    console.error("Error getting user profile:", error);
+    logError("getUserProfile", error);
     return null;
   }
 }
 
 export async function getCurrentUserWithRole() {
-  const supabase = createServerSupabaseClient(); // No await needed
-  const { data: { user } } = await supabase.auth.getUser();
-  
-  if (!user) return null;
+  const supabase = createServerSupabaseClient();
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error) throw error;
+    if (!user) return null;
 
-  const profile = await getUserProfile(user.id);
-  if (!profile) return null;
+    const profile = await getUserProfile(user.id);
+    if (!profile) return null;
 
-  return {
-    ...user,
-    role: profile.role,
-  };
+    return {
+      ...user,
+      role: profile.role,
+    };
+  } catch (error) {
+    logError("getCurrentUserWithRole", error);
+    return null;
+  }
 }

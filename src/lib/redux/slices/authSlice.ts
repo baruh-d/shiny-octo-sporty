@@ -1,8 +1,7 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit"
 import { supabase } from "@/lib/supabase/client"
 import type { Session, User as SupabaseUser } from "@supabase/supabase-js"
-
-type UserRole = "admin" | "athlete" | "coach" | "scout" | null
+import { UserRole } from "@/types/auth"
 
 // Define types for the auth state
 export interface User {
