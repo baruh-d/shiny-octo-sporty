@@ -3,42 +3,54 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { UserRole } from "@/types/auth"
 
-
-const PUBLIC_ROUTES = ['/', '/about', '/blog', '/events', '/programs', '/contact']
-const AUTH_ROUTES = ['/auth/signin', '/auth/signup', '/auth/forgot-password', '/auth/reset-password']
-const PROTECTED_ROLES = ['admin', 'athlete', 'coach', 'scout']
+const ROUTE_CONFIG = {
+  public: ['/', '/about', '/blog', '/events', '/programs', '/contact'],
+  auth: ['/auth/signin', '/auth/signup', '/auth/forgot-password', '/auth/reset-password'],
+  rolePaths: {
+    admin: '/admin',
+    athlete: '/athlete', 
+    coach: '/coach',
+    scout: '/scout'
+  }
+}
 
 export async function validateSession() {
   const supabase = createServerSupabaseClient()
-  const { data: { session }, error } = await supabase.auth.getSession()
-
-  if (error) {
-    console.error('Auth error:', error)
-    return { redirect: '/error?code=auth_failed' }
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession()
+    if (error) throw error
+    return { session }
+  } catch (error) {
+    console.error('Session validation failed:', error)
+    return { error: 'AUTH_FAILED' }
   }
-
-  return { session }
 }
 
-export function getRoleBasedRedirect(role?: UserRole): string {
-  const defaultRoutes: Record<Exclude<UserRole, null>, string> = {
-    admin: '/admin/dashboard',
-    athlete: '/athlete/performance',
-    coach: '/coach/athletes',
-    scout: '/scout/talent-spotlight',
-  }
-  return role && role in defaultRoutes ? defaultRoutes[role as Exclude<UserRole, null>] : '/'
+export function getRoleHomepage(role?: UserRole): string {
+  return role && ROUTE_CONFIG.rolePaths[role] 
+    ? `${ROUTE_CONFIG.rolePaths[role]}/dashboard` 
+    : '/'
 }
 
 export function isPublicRoute(pathname: string) {
-  return PUBLIC_ROUTES.some(route => pathname.startsWith(route))
+  return ROUTE_CONFIG.public.some(route => 
+    pathname === route || pathname.startsWith(`${route}/`)
+  )
 }
 
 export function isAuthRoute(pathname: string) {
-  return AUTH_ROUTES.some(route => pathname.startsWith(route))
+  return ROUTE_CONFIG.auth.some(route =>
+    pathname === route || pathname.startsWith(`${route}/`)
+  )
 }
 
-export function isRoleProtected(pathname: string, userRole?: UserRole) {
+export function requiresRoleAccess(pathname: string, userRole?: UserRole) {
   if (!userRole) return false
-  return PROTECTED_ROLES.some(role => pathname.startsWith(`/${role}`)) && userRole !== pathname.split('/')[1]
+  
+  // Check if path starts with any role base path
+  const pathRole = Object.entries(ROUTE_CONFIG.rolePaths).find(
+    ([, basePath]) => pathname.startsWith(`${basePath}/`)
+  )?.[0] as UserRole | undefined
+
+  return pathRole && pathRole !== userRole
 }

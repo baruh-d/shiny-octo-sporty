@@ -1,5 +1,7 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit"
 import { supabase } from "@/lib/supabase/client"
+import { users } from "@/lib/supabase/users"
+import { auth } from "@/lib/supabase/auth"
 import type { Session, User as SupabaseUser } from "@supabase/supabase-js"
 import { UserRole } from "@/types/auth"
 
@@ -58,7 +60,7 @@ export const signIn = createAsyncThunk(
 
       // Fetch user details
       const { data: userDetails, error: userDetailsError } = await supabase
-        .from("user_profiles")
+        .from("profiles")
         .select("*")
         .eq("id", data.user.id)
         .single()
@@ -302,4 +304,7 @@ const authSlice = createSlice({
 
 export const { setUser, setUserDetails, setSession } = authSlice.actions
 export default authSlice.reducer
+
+export const selectCurrentUser = (state: { auth: AuthState }) => state.auth.user;
+export const selectIsAuthenticated = (state: { auth: AuthState }) => !!state.auth.session;
 

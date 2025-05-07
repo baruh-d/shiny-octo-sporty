@@ -1,6 +1,6 @@
 // lib/supabase/client.ts
 import { createClient } from "@supabase/supabase-js";
-import type { Database } from "@/types/database.types"; // Import your generated types
+import type { Database } from "@/database.types"
 
 // 🌟 Environment Setup Check
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
