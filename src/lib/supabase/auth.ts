@@ -1,90 +1,110 @@
-// lib/supabase/auth.ts
-import { supabase, handleSupabaseError } from "./client";
+import { supabase } from "./client";
+import type { AuthError, User, Session } from "@supabase/supabase-js";
+
+type AuthResponse<T> = {
+  data: T;
+  error: null;
+} | {
+  data: null;
+  error: AuthError;
+};
+
+// Generic error handler
+const handleAuthError = <T>(error: AuthError, context: string): AuthResponse<T> => {
+  console.error(`${context}:`, error.message);
+  return { data: null, error };
+};
 
 // 🌟 User Registration
-export async function registerUser(email: string, password: string) {
+export async function registerUser(
+  email: string, 
+  password: string,
+  metadata?: Record<string, any>
+): Promise<AuthResponse<User>> {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
+    options: { data: metadata }
   });
 
-  if (error) handleSupabaseError(error, "Error registering user");
-  return data.user;
+  return error || !data.user 
+    ? handleAuthError(error || { message: "User data is null" } as AuthError, "Registration failed") 
+    : { data: data.user, error: null };
 }
 
 // 🌟 User Login
-export async function loginUser(email: string, password: string) {
+export async function loginUser(
+  email: string, 
+  password: string
+): Promise<AuthResponse<Session>> {
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
-    password,
+    password
   });
 
-  if (error) handleSupabaseError(error, "Error logging in user");
-  return data.user;
+  return error ? handleAuthError(error, "Login failed") : { data: data.session, error: null };
 }
 
 // 🌟 User Logout
-export async function logoutUser() {
+export async function logoutUser(): Promise<AuthResponse<void>> {
   const { error } = await supabase.auth.signOut();
-
-  if (error) handleSupabaseError(error, "Error logging out user");
-  return true;
+  return error ? handleAuthError(error, "Logout failed") : { data: undefined, error: null };
 }
 
-// 🌟 User Session
-export async function getUserSession() {
-  const { data: { session }, error } = await supabase.auth.getSession();
-
-  if (error) handleSupabaseError(error, "Error fetching user session");
-  return session;
+// 🌟 Session Management
+export async function getSession(): Promise<AuthResponse<Session>> {
+  const { data, error } = await supabase.auth.getSession();
+  return error || !data.session 
+    ? handleAuthError(error || { message: "Session is null" } as AuthError, "Session fetch failed") 
+    : { data: data.session, error: null };
 }
 
 // 🌟 Password Reset
-export async function resetPassword(email: string) {
-  const { error } = await supabase.auth.resetPasswordForEmail(email);
-
-  if (error) handleSupabaseError(error, "Error resetting password");
-  return true;
-}
-
-// 🌟 Update User Password
-export async function updateUserPassword(newPassword: string) {
-  const { error } = await supabase.auth.updateUser({ password: newPassword });
-
-  if (error) handleSupabaseError(error, "Error updating user password");
-  return true;
-}
-
-// 🌟 Get Current User
-export async function getCurrentUser() {
-  const { data: { user }, error } = await supabase.auth.getUser();
-  
-  if (error) handleSupabaseError(error, "Error getting current user");
-  return user;
-}
-
-// 🌟 Update User Email
-export async function updateUserEmail(newEmail: string) {
-  const { error } = await supabase.auth.updateUser({ email: newEmail });
-  
-  if (error) handleSupabaseError(error, "Error updating user email");
-  return true;
-}
-
-// 🌟 Set User Metadata
-export async function setUserMetadata(metadata: Record<string, unknown>) {
-  const { error } = await supabase.auth.updateUser({ data: metadata });
-  
-  if (error) handleSupabaseError(error, "Error setting user metadata");
-  return true;
-}
-
-// 🌟 Sign In With OAuth Provider
-export async function signInWithProvider(provider: 'google' | 'github' | 'facebook' | 'twitter') {
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: provider,
+export async function resetPassword(
+  email: string, 
+  redirectTo?: string
+): Promise<AuthResponse<void>> {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: redirectTo || `${window.location.origin}/auth/reset-password`
   });
-  
-  if (error) handleSupabaseError(error, `Error signing in with ${provider}`);  
-  return data;
+  return error ? handleAuthError(error, "Password reset failed") : { data: undefined, error: null };
+}
+
+// 🌟 User Operations
+export async function updateUser(
+  updates: {
+    email?: string;
+    password?: string;
+    data?: Record<string, any>;
+  }
+): Promise<AuthResponse<User>> {
+  const { data, error } = await supabase.auth.updateUser(updates);
+  return error ? handleAuthError(error, "User update failed") : { data: data.user, error: null };
+}
+
+// 🌟 OAuth Providers
+export async function signInWithOAuth(
+  provider: 'google' | 'github' | 'facebook' | 'twitter',
+  options?: {
+    redirectTo?: string;
+    scopes?: string;
+  }
+): Promise<AuthResponse<{ url: string }>> {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo: options?.redirectTo,
+      scopes: options?.scopes
+    }
+  });
+
+  return error 
+    ? handleAuthError(error, `OAuth sign-in failed`) 
+    : { data: { url: data.url }, error: null };
+}
+
+// 🌟 Current User
+export async function getCurrentUser(): Promise<AuthResponse<User>> {
+  const { data, error } = await supabase.auth.getUser();
+  return error ? handleAuthError(error, "Get user failed") : { data: data.user, error: null };
 }
