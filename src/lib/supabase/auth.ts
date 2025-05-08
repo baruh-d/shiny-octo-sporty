@@ -19,7 +19,7 @@ const handleAuthError = <T>(error: AuthError, context: string): AuthResponse<T> 
 export async function registerUser(
   email: string, 
   password: string,
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 ): Promise<AuthResponse<User>> {
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -75,7 +75,7 @@ export async function updateUser(
   updates: {
     email?: string;
     password?: string;
-    data?: Record<string, any>;
+    data?: Record<string, unknown>;
   }
 ): Promise<AuthResponse<User>> {
   const { data, error } = await supabase.auth.updateUser(updates);

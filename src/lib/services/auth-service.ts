@@ -1,3 +1,4 @@
+// lib/services/auth-service.ts
 "use server"
 
 import { createServerSupabaseClient } from "@/lib/supabase/server"
@@ -26,7 +27,7 @@ export async function validateSession() {
   }
 }
 
-export function getRoleHomepage(role?: UserRole): string {
+export function getRoleBasedRedirect(role?: UserRole): string {
   return role && ROUTE_CONFIG.rolePaths[role] 
     ? `${ROUTE_CONFIG.rolePaths[role]}/dashboard` 
     : '/'
@@ -44,7 +45,7 @@ export function isAuthRoute(pathname: string) {
   )
 }
 
-export function requiresRoleAccess(pathname: string, userRole?: UserRole) {
+export function isRoleProtected(pathname: string, userRole?: UserRole) {
   if (!userRole) return false
   
   // Check if path starts with any role base path
@@ -52,5 +53,5 @@ export function requiresRoleAccess(pathname: string, userRole?: UserRole) {
     ([, basePath]) => pathname.startsWith(`${basePath}/`)
   )?.[0] as UserRole | undefined
 
-  return pathRole && pathRole !== userRole
+  return pathRole && pathRole === userRole
 }

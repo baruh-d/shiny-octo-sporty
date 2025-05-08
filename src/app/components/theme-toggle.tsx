@@ -2,12 +2,32 @@
 
 import { Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
+import { usePersistedState } from "@/app/hooks/use-persisted-state"
+import { useEffect } from "react"
 
 import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu"
 
 export function ThemeToggle() {
   const { setTheme } = useTheme()
+  const [persistedTheme, setPersistedTheme] = usePersistedState('theme', 'system')
+
+  // Sync the persisted theme with next-themes
+  useEffect(() => {
+    if (persistedTheme) {
+      setTheme(persistedTheme)
+    }
+  }, [persistedTheme, setTheme])
+
+  const handleThemeChange = (newTheme: string) => {
+    setTheme(newTheme)
+    setPersistedTheme(newTheme)
+  }
 
   return (
     <DropdownMenu>
@@ -19,12 +39,16 @@ export function ThemeToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>Light</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>Dark</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>System</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => handleThemeChange("light")}>
+          Light
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => handleThemeChange("dark")}>
+          Dark
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => handleThemeChange("system")}>
+          System
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )
 }
-
-// Compare this snippet from sports/my-sports-app/src/app/components/ui/button.tsx:
