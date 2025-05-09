@@ -7,7 +7,7 @@ import { ThemeToggle } from "./theme-toggle"
 import { Logo } from "./logo"
 import { Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils/utils"
 
 export function DashboardShell({ 
   children,

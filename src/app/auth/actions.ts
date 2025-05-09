@@ -6,91 +6,149 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-// Shared schemas
-const signInSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6)
-});
-
-const signUpSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
-  role: z.enum(["athlete", "coach", "scout"])
-});
-
-const passwordResetSchema = z.object({
-  email: z.string().email()
-});
+// Enhanced schemas with better validation messages
+const authSchemas = {
+  signIn: z.object({
+    email: z.string().email("Please enter a valid email address"),
+    password: z.string().min(6, "Password must be at least 6 characters")
+  }),
+  signUp: z.object({
+    email: z.string().email("Please enter a valid email address"),
+    password: z.string()
+      .min(8, "Password must be at least 8 characters")
+      .regex(/[A-Z]/, "Must contain at least one uppercase letter")
+      .regex(/[a-z]/, "Must contain at least one lowercase letter")
+      .regex(/[0-9]/, "Must contain at least one number"),
+    role: z.enum(["athlete", "coach", "scout"], {
+      errorMap: () => ({ message: "Please select a valid role" })
+    })
+  }),
+  passwordReset: z.object({
+    email: z.string().email("Please enter a valid email address")
+  })
+};
 
 export async function signIn(formData: FormData) {
-  const validated = signInSchema.parse({
-    email: formData.get("email"),
-    password: formData.get("password")
-  });
+  try {
+    const validated = authSchemas.signIn.parse({
+      email: formData.get("email"),
+      password: formData.get("password")
+    });
 
-  const supabase = createServerSupabaseClient();
-  const { error } = await supabase.auth.signInWithPassword(validated);
-  
-  if (error) return { error: error.message };
-  
-  redirect(formData.get("redirectTo")?.toString() || "/dashboard");
+    const supabase = createServerSupabaseClient();
+    const { error } = await supabase.auth.signInWithPassword(validated);
+    
+    if (error) {
+      return { error: "Invalid credentials. Please try again." };
+    }
+
+    redirect(formData.get("redirectTo")?.toString() || "/dashboard");
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      return { error: err.errors[0].message };
+    }
+    return { error: "An unexpected error occurred. Please try again." };
+  }
 }
 
 export async function signUp(formData: FormData) {
-  const validated = signUpSchema.parse({
-    email: formData.get("email"),
-    password: formData.get("password"),
-    role: formData.get("role")
-  });
+  try {
+    const validated = authSchemas.signUp.parse({
+      email: formData.get("email"),
+      password: formData.get("password"),
+      role: formData.get("role")
+    });
 
-  const supabase = createServerSupabaseClient();
-  const { data, error } = await supabase.auth.signUp({
-    email: validated.email,
-    password: validated.password,
-    options: {
-      data: { role: validated.role }
-    }
-  });
-
-  if (error) return { error: error.message };
-  
-  if (data.user) {
-    await supabase.from("user_profiles").insert([{
-      id: data.user.id,
+    const supabase = createServerSupabaseClient();
+    const { data, error } = await supabase.auth.signUp({
       email: validated.email,
-      role: validated.role
-    }]);
-  }
+      password: validated.password,
+      options: {
+        data: { 
+          role: validated.role,
+          created_at: new Date().toISOString()
+        }
+      }
+    });
 
-  return { success: "Check your email for verification!" };
+    if (error) {
+      return { error: error.message };
+    }
+    
+    if (data.user) {
+      await supabase.from("user_profiles").insert([{
+        id: data.user.id,
+        email: validated.email,
+        role: validated.role,
+        created_at: new Date().toISOString()
+      }]);
+    }
+
+    return { 
+      success: "Check your email for verification!",
+      userId: data.user?.id 
+    };
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      return { error: err.errors[0].message };
+    }
+    return { error: "Registration failed. Please try again." };
+  }
 }
 
 export async function resetPassword(formData: FormData) {
-  const validated = passwordResetSchema.parse({
-    email: formData.get("email")
-  });
+  try {
+    const validated = authSchemas.passwordReset.parse({
+      email: formData.get("email")
+    });
 
-  const supabase = createServerSupabaseClient();
-  const { error } = await supabase.auth.resetPasswordForEmail(validated.email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/reset-password`
-  });
+    const supabase = createServerSupabaseClient();
+    const { error } = await supabase.auth.resetPasswordForEmail(validated.email, {
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/reset-password`
+    });
 
-  if (error) return { error: error.message };
-  return { success: "Password reset link sent!" };
+    if (error) {
+      return { error: error.message };
+    }
+
+    return { 
+      success: "If an account exists, you'll receive a reset link.",
+      email: validated.email 
+    };
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      return { error: err.errors[0].message };
+    }
+    return { error: "Failed to send reset link. Please try again." };
+  }
 }
 
 export async function signOut() {
-  const supabase = createServerSupabaseClient();
-  await supabase.auth.signOut();
-  
-  // clear cookies
-  const cookieStore = await cookies();
-  ['sb-access-token', 'sb-refresh-token'].forEach(name => {
-    cookieStore.set(name, '', {
+  try {
+    const supabase = createServerSupabaseClient();
+    await supabase.auth.signOut();
+    
+    // Clear cookies synchronously
+    const cookieStore = await cookies();
+    
+    // Cookie deletion options
+    const cookieOptions = {
       path: '/',
-      maxAge: 0
-    });
-  });  
+      maxAge: 0,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax' as const,
+      httpOnly: true
+    };
 
-  redirect("/auth/signin");
+    // Delete all auth-related cookies
+    cookieStore.set('sb-access-token', '', cookieOptions);
+    cookieStore.set('sb-refresh-token', '', cookieOptions);
+    cookieStore.set('x-session', '', cookieOptions);
+    cookieStore.set('x-csrf-token', '', cookieOptions);
+
+    redirect("/auth/signin");
+  } catch (err) {
+    console.error("Sign out error:", err);
+    redirect("/auth/signin?error=signout_failed");
+  }
 }

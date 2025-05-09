@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useParams } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/app/components/logo";
 import {

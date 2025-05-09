@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils/utils";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
-import { signOut } from "@/lib/redux/slices/authSlice"; 
+import { signOut } from "@/lib/redux/slices/authSlice"; // Updated import path
+import { Loader2 } from "lucide-react";
 import { useToast } from "@/app/hooks/use-toast";
-import { KenyanFlagLoader } from "@/components/ui/loading-spinner"; 
 
 interface SignOutButtonProps extends ButtonProps {
   children?: React.ReactNode;
@@ -42,14 +42,17 @@ export function SignOutButton({
           sessionStorage.clear();
         }
         
+        // Call success callback if provided
         onSignOutSuccess?.();
+        
+        // Redirect and refresh
         router.push('/auth/signin');
         router.refresh();
       } else if (signOut.rejected.match(result)) {
         throw result.payload || "Failed to sign out";
       }
     } catch (error) {
-      console.error('Sign out error:', error);
+      console.error('Error signing out:', error);
       toast({
         title: "Sign Out Failed",
         description: error instanceof Error ? error.message : "Could not sign out",
@@ -72,9 +75,13 @@ export function SignOutButton({
     };
 
     window.addEventListener('storage', handleStorageEvent);
-    return () => window.removeEventListener('storage', handleStorageEvent);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageEvent);
+    };
   }, [router]);
 
+  // Handle auth errors from Redux
   useEffect(() => {
     if (authError) {
       toast({
@@ -98,10 +105,10 @@ export function SignOutButton({
       {...props}
     >
       {isLoading && showLoading ? (
-        <div className="flex items-center gap-2">
-          <KenyanFlagLoader size="sm" /> {/* Using your Kenyan loader */}
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           {children || "Signing Out..."}
-        </div>
+        </>
       ) : (
         children || "Sign Out"
       )}

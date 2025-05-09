@@ -16,7 +16,7 @@ import {
 import { User, Medal, FileText, Settings, LogOut } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/app/components/auth/auth-provider"
-import { SignOutButton } from "@/app/auth/signout-button"
+import { SignOutButton } from "@/app/auth/components/signout-button"
 
 export function UserNav() {
   const { user, userDetails } = useAuth()

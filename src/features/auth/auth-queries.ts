@@ -20,6 +20,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { getCSRFTokenFromCookie, isValidCSRFToken } from "@/lib/utils/csrf";
 import type { UserRole } from "@/types/auth";
+import { useAuthToast } from "@/app/hooks/use-auth-toast"; // Added for the new function
 
 // Create a utility function for CSRF verification
 const verifyCSRFToken = (dispatch: ReturnType<typeof useAppDispatch>) => {
@@ -29,6 +30,10 @@ const verifyCSRFToken = (dispatch: ReturnType<typeof useAppDispatch>) => {
   return isValid;
 };
 
+/**
+ * Hook to fetch and manage the current authentication session
+ * @returns Query object containing session data and status
+ */
 export const useAuthSession = () => {
   const dispatch = useAppDispatch();
 
@@ -45,7 +50,7 @@ export const useAuthSession = () => {
         
         // Check email verification status
         if (!session.user.email_confirmed_at) {
-          console.warn('Email not verified');
+          dispatch(setAuthError('Email not verified'));
         }
       }
 
@@ -66,6 +71,12 @@ export const useAuthSession = () => {
   });
 };
 
+/**
+ * Hook to handle redirection to auth pages for protected routes
+ * @param pathname Current path that requires authentication
+ * @param debounceTime Time to debounce redirects (in ms)
+ * @returns Session data and loading state
+ */
 export const useAuthRedirect = (pathname: string, debounceTime = 1000) => {
   const { data: session, isLoading } = useAuthSession();
   const router = useRouter();
@@ -86,6 +97,9 @@ export const useAuthRedirect = (pathname: string, debounceTime = 1000) => {
   return { session, isLoading };
 };
 
+/**
+ * Hook to prefetch protected routes based on user role
+ */
 export const usePrefetchProtectedRoutes = () => {
   const { data: session } = useAuthSession();
   const router = useRouter();
@@ -94,7 +108,9 @@ export const usePrefetchProtectedRoutes = () => {
     if (!session) return;
 
     const user = session.user;
-    const role = user.user_metadata?.role as UserRole | undefined;
+    // Safely access user metadata
+    const userMetadata = user.user_metadata || {};
+    const role = userMetadata.role as UserRole | undefined;
     
     // Common routes for all authenticated users
     const commonRoutes = ['/dashboard', '/settings', '/profile'];
@@ -115,6 +131,9 @@ export const usePrefetchProtectedRoutes = () => {
   }, [session, router]);
 };
 
+/**
+ * Hook to handle user sign-in
+ */
 export const useSignIn = () => {
   const queryClient = useQueryClient();
   const dispatch = useAppDispatch();
@@ -158,6 +177,9 @@ export const useSignIn = () => {
   });
 };
 
+/**
+ * Hook to handle user registration
+ */
 export const useSignUp = () => {
   const dispatch = useAppDispatch();
   const queryClient = useQueryClient();
@@ -191,6 +213,101 @@ export const useSignUp = () => {
   });
 };
 
+/**
+ * Hook to handle email verification
+ */
+export const useVerifyEmail = () => {
+  const dispatch = useAppDispatch();
+  const queryClient = useQueryClient();
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: async ({ token, type }: { token: string; type: string }) => {
+      dispatch(setAuthLoading(true));
+      
+      // Using your existing Supabase auth utilities
+      const { data, error } = await supabase.auth.verifyOtp({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        type: type as any, // 'email' | 'magiclink' | etc.
+        token_hash: token
+      });
+      
+      if (error) throw new Error(error.message);
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(['auth', 'session'], data);
+      verifyCSRFToken(dispatch);
+      dispatch(clearError());
+      router.prefetch('/dashboard');
+    },
+    onError: (error: Error) => {
+      dispatch(setAuthError(error.message));
+    },
+    onSettled: () => {
+      dispatch(setAuthLoading(false));
+    }
+  });
+};
+
+/**
+ * Hook to handle post-verification redirection with toast notifications
+ */
+export const useRedirectAfterVerification = () => {
+  const router = useRouter();
+  const { setToast } = useAuthToast();
+  
+  return (success: boolean) => {
+    if (success) {
+      setToast({
+        success: 'Email verified successfully!',
+        error: undefined
+      });
+      router.push('/dashboard');
+    } else {
+      setToast({
+        error: 'Verification failed',
+        success: undefined
+      });
+      router.push('/auth/signup');
+    }
+  };
+};
+
+/**
+ * Hook to handle password reset request
+ */
+export const useForgotPassword = () => {
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: async (email: string) => {
+      dispatch(setAuthLoading(true));
+      
+      // Using your existing Supabase auth utilities
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      });
+      
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      dispatch(clearError());
+      router.prefetch('/auth/signin'); // Prefetch signin page
+    },
+    onError: (error: Error) => {
+      dispatch(setAuthError(error.message));
+    },
+    onSettled: () => {
+      dispatch(setAuthLoading(false));
+    }
+  });
+};
+
+/**
+ * Hook to handle user sign-out
+ */
 export const useSignOut = () => {
   const queryClient = useQueryClient();
   const dispatch = useAppDispatch();
@@ -221,6 +338,9 @@ export const useSignOut = () => {
   });
 };
 
+/**
+ * Hook to request password reset
+ */
 export const useResetPassword = () => {
   const dispatch = useAppDispatch();
 
@@ -235,6 +355,86 @@ export const useResetPassword = () => {
     },
     onError: (error: Error) => {
       dispatch(setAuthError(error.message));
+    },
+    onSettled: () => {
+      dispatch(setAuthLoading(false));
+    }
+  });
+};
+
+/**
+ * Hook to confirm a password reset
+ */
+export const useConfirmPasswordReset = () => {
+  const dispatch = useAppDispatch();
+  const queryClient = useQueryClient();
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: async ({ 
+      newPassword, 
+      token 
+    }: { 
+      newPassword: string; 
+      token: string 
+    }) => {
+      dispatch(setAuthLoading(true));
+      
+      // First verify the token
+      const { data: { user }, error: verifyError } = await supabase.auth.verifyOtp({
+        type: 'recovery',
+        token_hash: token,
+      });
+
+      if (verifyError || !user) {
+        throw new Error(verifyError?.message || "Invalid or expired token");
+      }
+
+      // Then update the password
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (updateError) throw new Error(updateError.message);
+      
+      return { success: true };
+    },
+    onSuccess: () => {
+      dispatch(clearError());
+      queryClient.invalidateQueries({ queryKey: ['auth'] });
+      router.prefetch('/auth/signin');
+    },
+    onError: (error: Error) => {
+      dispatch(setAuthError(error.message));
+    },
+    onSettled: () => {
+      dispatch(setAuthLoading(false));
+    }
+  });
+};
+
+/**
+ * Hook to handle OAuth login
+ */
+export const useOAuthLogin = () => {
+  const dispatch = useAppDispatch();
+  
+  return useMutation({
+    mutationFn: async (provider: 'google'|'facebook'|'twitter'|'linkedin') => {
+      dispatch(setAuthLoading(true));
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      dispatch(clearError());
+    },
+    onError: (error: Error) => {
+      dispatch(setAuthError(`OAuth failed: ${error.message}`));
     },
     onSettled: () => {
       dispatch(setAuthLoading(false));

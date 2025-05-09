@@ -29,12 +29,69 @@
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    typescript: {
-      ignoreBuildErrors: true, // TEMPORARY - remove after build works
-    },
-    eslint: {
-      ignoreDuringBuilds: true, // TEMPORARY - remove after build works
-    },
-  }
-  
-  module.exports = nextConfig
+  typescript: {
+    ignoreBuildErrors: true, // TEMPORARY - remove after build works
+  },
+  eslint: {
+    ignoreDuringBuilds: true, // TEMPORARY - remove after build works
+  },
+  async headers() {
+    return [
+      {
+        // Apply to all routes
+        source: '/(.*)',
+        headers: securityHeaders,
+      },
+    ];
+  },
+};
+
+// Define your security headers once
+const securityHeaders = [
+  // Basic protections
+  {
+    key: 'X-Frame-Options',
+    value: 'DENY',
+  },
+  {
+    key: 'X-Content-Type-Options',
+    value: 'nosniff',
+  },
+  {
+    key: 'Referrer-Policy',
+    value: 'strict-origin-when-cross-origin',
+  },
+  // CSP - Adjust based on your needs
+  {
+    key: 'Content-Security-Policy',
+    value: `
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' ${
+        process.env.NODE_ENV === 'development' ? "'unsafe-eval'" : ""
+      };
+      style-src 'self' 'unsafe-inline';
+      img-src 'self' data: blob:;
+      font-src 'self';
+      connect-src 'self' https://*.supabase.co;
+      frame-src 'none';
+      media-src 'none';
+    `.replace(/\s+/g, " ").trim(),
+  },
+  // HTTPS enforcement
+  {
+    key: 'Strict-Transport-Security',
+    value: 'max-age=63072000; includeSubDomains; preload',
+  },
+  // XSS protection
+  {
+    key: 'X-XSS-Protection',
+    value: '1; mode=block',
+  },
+  // Permissions policy
+  {
+    key: 'Permissions-Policy',
+    value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+  },
+];
+
+module.exports = nextConfig;

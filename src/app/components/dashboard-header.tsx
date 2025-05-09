@@ -1,5 +1,5 @@
 // components/dashboard-header.tsx
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils/utils"
 import { useAuth } from "@/app/components/auth/auth-provider"
 
 interface DashboardHeaderProps {

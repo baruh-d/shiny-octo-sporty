@@ -1,23 +1,19 @@
-// lib/supabase/server.ts
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { cache } from "react";
-import { UserRole } from "@/types/auth";
+import type { UserRole } from "@/types/auth";
 
-interface UserProfile {
+interface Profile {
   id: string;
   email: string;
-  first_name: string;
-  last_name: string;
   role: UserRole;
-  avatar_url?: string;
+  first_name?: string;
+  last_name?: string;
+  avatar_url?: string | null;
   created_at: string;
 }
 
-function logError(context: string, error: unknown) {
-  console.error(`[Supabase][${context}]`, error instanceof Error ? error.message : error);
-}
-
+// 1. Preserved your exact cookie implementation
 export const createServerSupabaseClient = cache(() => {
   const cookieStore = cookies();
 
@@ -41,51 +37,38 @@ export const createServerSupabaseClient = cache(() => {
   );
 });
 
-export async function getSession() {
+// 2. Optimized data accessors with proper typing
+export const getSession = cache(async () => {
   const supabase = createServerSupabaseClient();
-  try {
-    const { data: { session }, error } = await supabase.auth.getSession();
-    if (error) throw error;
-    return session;
-  } catch (error) {
-    logError("getSession", error);
-    return null;
-  }
-}
+  const { data: { session }, error } = await supabase.auth.getSession();
+  if (error) throw new Error(`Session error: ${error.message}`);
+  return session;
+});
 
-export async function getUserProfile(userId: string): Promise<UserProfile | null> {
+export const getProfile = cache(async (userId: string) => {
   const supabase = createServerSupabaseClient();
-  try {
-    const { data, error } = await supabase
-      .from("user_profiles")
-      .select("*")
-      .eq("id", userId)
-      .maybeSingle();
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', userId)
+    .maybeSingle();
+  
+  if (error) throw new Error(`Profile fetch failed: ${error.message}`);
+  return data as Profile | null;
+});
 
-    if (error) throw error;
-    return data;
-  } catch (error) {
-    logError("getUserProfile", error);
-    return null;
-  }
-}
-
-export async function getCurrentUserWithRole() {
+export const getCurrentUserWithRole = cache(async () => {
   const supabase = createServerSupabaseClient();
-  try {
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error) throw error;
-    if (!user) return null;
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) return null;
 
-    const profile = await getUserProfile(user.id);
-    if (!profile) return null;
+  const profile = await getProfile(user.id);
+  return profile ? { ...user, role: profile.role } : null;
+});
 
-    return {
-      ...user,
-      role: profile.role,
-    };
-  } catch (error) {
-    logError("getCurrentUserWithRole", error);
-    return null;
-  }
-}
+// 3. React Query keys (match client-side)
+export const queryKeys = {
+  session: () => ['supabase', 'session'],
+  profile: (userId: string) => ['supabase', 'profile', userId],
+  currentUser: () => ['supabase', 'current-user'],
+};

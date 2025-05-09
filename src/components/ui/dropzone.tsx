@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react"
 import { useDropzone } from "react-dropzone"
 import { UploadCloud, X, FileText, Image, Film } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils/utils"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 

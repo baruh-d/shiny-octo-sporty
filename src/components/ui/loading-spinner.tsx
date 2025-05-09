@@ -1,46 +1,76 @@
-// src/components/ui/loading-spinner.tsx
-"use client";
+"use client"
 
-import React from 'react';
+import React from "react"
+import { cn } from "@/lib/utils/utils"
 
 interface KenyanFlagLoaderProps {
-  fullPage?: boolean;
+  size?: "xs" | "sm" | "md" | "lg" | "xl"
+  className?: string
+  fullPage?: boolean
+  text?: string
 }
 
-const KenyanFlagLoader = ({ fullPage }: KenyanFlagLoaderProps) => {
+export function KenyanFlagLoader({ 
+  size = "md", 
+  className, 
+  fullPage = false,
+  text = "Loading..."
+}: KenyanFlagLoaderProps) {
+  // Size configuration using your existing theme scales
+  const sizeClasses = {
+    xs: "h-4 w-4 text-xs",
+    sm: "h-6 w-6 text-sm",
+    md: "h-8 w-8 text-base",
+    lg: "h-10 w-10 text-lg",
+    xl: "h-12 w-12 text-xl"
+  }
+
+  // Shield size relative to container
+  const shieldSize = {
+    xs: "h-1 w-1",
+    sm: "h-2 w-2",
+    md: "h-3 w-3",
+    lg: "h-4 w-4",
+    xl: "h-5 w-5"
+  }
+
   return (
-    <div className={`flex flex-col items-center justify-center ${fullPage ? 'fixed inset-0 bg-black bg-opacity-50 z-50' : ''}`}>
-      <div className="relative w-24 h-24">
-        {/* Black circle base */}
+    <div className={cn(
+      "flex flex-col items-center justify-center gap-2",
+      fullPage ? "fixed inset-0 bg-black/50 z-50" : "",
+      className
+    )}>
+      {/* Spinner container - using your configured spin animation */}
+      <div className={cn(
+        "relative rounded-full",
+        sizeClasses[size],
+        "animate-spin" // Using your tailwind config's spin animation
+      )}>
+        {/* Background circle */}
         <div className="absolute inset-0 rounded-full bg-kas-black"></div>
         
-        {/* Red spinning arc */}
-        <div className="absolute inset-0 rounded-full border-4 border-kas-red animate-spin" 
-             style={{ animationDuration: '1.5s', clipPath: 'polygon(0 0, 100% 0, 100% 33%, 0 33%)' }}></div>
+        {/* Flag stripes using borders for performance */}
+        <div className="absolute inset-0 rounded-full border-t-2 border-kas-red"></div>
+        <div className="absolute inset-0 rounded-full border-r-2 border-white"></div>
+        <div className="absolute inset-0 rounded-full border-b-2 border-kas-green"></div>
         
-        {/* Green spinning arc */}
-        <div className="absolute inset-0 rounded-full border-4 border-kas-green animate-spin" 
-             style={{ animationDuration: '1.5s', animationDelay: '0.2s', clipPath: 'polygon(0 66%, 100% 66%, 100% 100%, 0 100%)' }}></div>
-        
-        {/* White spinning arc */}
-        <div className="absolute inset-0 rounded-full border-4 border-white animate-spin" 
-             style={{ animationDuration: '1.5s', animationDelay: '0.1s', clipPath: 'polygon(0 33%, 100% 33%, 100% 66%, 0 66%)' }}></div>
-        
-        {/* Maasai shield overlay */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-12 h-12 bg-white bg-opacity-10 rounded-full flex items-center justify-center">
-            <div className="w-8 h-10 rounded-full bg-kas-red" 
-                 style={{ clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)' }}></div>
-          </div>
-        </div>
+        {/* Maasai shield - centered and simplified */}
+        <div className={cn(
+          "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2",
+          "rounded-full bg-kas-red",
+          shieldSize[size]
+        )}></div>
       </div>
       
-      {/* Loading text */}
-      <div className="mt-8 text-white font-bold">
-        Loading...
-      </div>
+      {/* Optional loading text */}
+      {text && (
+        <div className={cn(
+          "text-white font-medium",
+          sizeClasses[size].split(" ")[3] // Match text size to spinner size
+        )}>
+          {text}
+        </div>
+      )}
     </div>
-  );
-};
-
-export default KenyanFlagLoader;
+  )
+}
