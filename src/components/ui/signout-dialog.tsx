@@ -1,9 +1,8 @@
 'use client';
 import { memo, useState, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { KenyanFlagLoader } from '@/components/ui/loading-spinner';
+import { Button } from './button';
+import { KenyanFlagLoader } from './loading-spinner';
 
-// Add the export keyword here
 export const SignOutDialog = memo(({ 
   trigger, 
   onConfirm, 

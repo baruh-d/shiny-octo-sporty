@@ -1,4 +1,3 @@
-// components/user-nav.tsx
 "use client"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -15,11 +14,19 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { User, Medal, FileText, Settings, LogOut } from "lucide-react"
 import Link from "next/link"
-import { useAuth } from "@/app/components/auth/auth-provider"
-import { SignOutButton } from "@/app/auth/components/signout-button"
+import useAuth from "@/app/hooks/use-auth"
+import { SignOutDialog } from "@/components/ui/signout-dialog"
+import { useRouter } from "next/navigation"
+import { useAuthToast } from "@/app/hooks/use-auth-toast"
+import { useSignOut } from "@/features/auth/auth-queries"
+import type { UserRole } from "@/types/auth"
 
 export function UserNav() {
-  const { user, userDetails } = useAuth()
+  const { user, role } = useAuth()
+  const userDetails = user?.profile
+  const router = useRouter()
+  const { setToast } = useAuthToast()
+  const { mutate: signOut } = useSignOut()
 
   const getInitial = () => {
     if (user?.email) return user.email.charAt(0).toUpperCase()
@@ -28,7 +35,7 @@ export function UserNav() {
   }
 
   const roleSpecificItems = () => {
-    switch(userDetails?.role) {
+    switch(role) {
       case 'athlete':
         return [
           { icon: Medal, label: "Performance", href: "/athlete/performance" },
@@ -47,6 +54,20 @@ export function UserNav() {
       default:
         return []
     }
+  }
+
+  const handleSignOut = () => {
+    signOut(undefined, {
+      onSuccess: () => {
+        router.push('/auth/signin')
+      },
+      onError: (error) => {
+        setToast({
+          error: error instanceof Error ? error.message : "Sign out failed",
+          success: undefined
+        })
+      }
+    })
   }
 
   return (
@@ -70,9 +91,9 @@ export function UserNav() {
             <p className="text-sm font-medium leading-none">
               {userDetails?.first_name || user?.email || "User"}
             </p>
-            {userDetails?.role && (
+            {role && (
               <p className="text-xs leading-none text-muted-foreground capitalize">
-                {userDetails.role}
+                {role}
               </p>
             )}
           </div>
@@ -86,7 +107,7 @@ export function UserNav() {
               <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
             </Link>
           </DropdownMenuItem>
-          
+
           {roleSpecificItems().map((item) => (
             <DropdownMenuItem key={item.href} asChild>
               <Link href={item.href}>
@@ -97,13 +118,16 @@ export function UserNav() {
           ))}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <SignOutButton className="w-full">
-            <LogOut className="mr-2 h-4 w-4" />
-            <span>Log out</span>
-            <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
-          </SignOutButton>
-        </DropdownMenuItem>
+        <SignOutDialog
+          trigger={
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Log out</span>
+              <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+            </DropdownMenuItem>
+          }
+          onConfirm={handleSignOut}
+        />
       </DropdownMenuContent>
     </DropdownMenu>
   )

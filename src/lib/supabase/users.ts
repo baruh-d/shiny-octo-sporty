@@ -1,18 +1,6 @@
-// lib/supabase/users.ts
 import { supabase, handleSupabaseError } from "./client";
 
-// 🌟 User Functions
-export async function getUsers() {
-  const { data, error } = await supabase
-    .from('users')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) handleSupabaseError(error, "Error fetching users");
-  return data!;
-}
-
-// 🌟 User Profile
+// 🌟 User Profile Fetch
 export async function getUserProfile(userId: string) {
   const { data, error } = await supabase
     .from('profiles')
@@ -24,7 +12,7 @@ export async function getUserProfile(userId: string) {
   return data;
 }
 
-// 🌟 Update User Profile
+// 🌟 User Profile Update
 export interface UserProfileUpdate {
   username?: string;
   first_name?: string;
@@ -41,21 +29,24 @@ export async function updateUserProfile(userId: string, profileData: UserProfile
   const { data, error } = await supabase
     .from('profiles')
     .update(profileData)
-    .eq('id', userId);
+    .eq('id', userId)
+    .select()
+    .single(); // Return the updated row
 
   if (error) handleSupabaseError(error, "Error updating user profile");
   return data;
 }
 
-// 🌟 Delete User Account
-export async function deleteUserAccount(userId: string) {
-  const { error } = await supabase
-    .from('profiles')
-    .delete()
-    .eq('id', userId);
+// 🌟 Fetch User by Email
+export async function fetchUserByEmail(email: string) {
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('email', email)
+    .single();
 
-  if (error) handleSupabaseError(error, "Error deleting user account");
-  return true;
+  if (error) handleSupabaseError(error, "Error fetching user by email");
+  return data;
 }
 
 // 🌟 Admin Temp Login
@@ -87,43 +78,7 @@ export async function fetchUserById(userId: string) {
   return data;
 }
 
-// 🌟 Fetch User by Email
-export async function fetchUserByEmail(email: string) {
-  const { data, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('email', email)
-    .single();
-
-  if (error) handleSupabaseError(error, "Error fetching user by email");
-  return data;
-}
-
-// 🌟 Fetch User by Username
-export async function fetchUserByUsername(username: string) {
-  const { data, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('username', username)
-    .single();
-
-  if (error) handleSupabaseError(error, "Error fetching user by username");
-  return data;
-}
-
-// 🌟 Fetch User by Phone Number
-export async function fetchUserByPhoneNumber(phoneNumber: string) {
-  const { data, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('phone_number', phoneNumber)
-    .single();
-
-  if (error) handleSupabaseError(error, "Error fetching user by phone number");
-  return data;
-}
-
-// 🌟 Fetch User by Role
+// 🌟 Fetch Users by Role
 export async function fetchUsersByRole(role: string) {
   const { data, error } = await supabase
     .from('users')
@@ -134,7 +89,7 @@ export async function fetchUsersByRole(role: string) {
   return data;
 }
 
-// 🌟 Fetch User by Status
+// 🌟 Fetch Users by Status
 export async function fetchUsersByStatus(status: string) {
   const { data, error } = await supabase
     .from('users')
@@ -145,7 +100,7 @@ export async function fetchUsersByStatus(status: string) {
   return data;
 }
 
-// 🌟 Fetch User by Created Date
+// 🌟 Fetch Users by Created Date
 export async function fetchUsersByCreatedDate(date: string) {
   const { data, error } = await supabase
     .from('users')
@@ -156,18 +111,7 @@ export async function fetchUsersByCreatedDate(date: string) {
   return data;
 }
 
-// 🌟 Fetch User by Updated Date
-export async function fetchUsersByUpdatedDate(date: string) {
-  const { data, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('updated_at', date);
-
-  if (error) handleSupabaseError(error, "Error fetching users by updated date");
-  return data;
-}
-
-// 🌟 Fetch User by Last Login
+// 🌟 Fetch Users by Last Login
 export async function fetchUsersByLastLogin(date: string) {
   const { data, error } = await supabase
     .from('users')

@@ -1,4 +1,3 @@
-import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
@@ -9,62 +8,23 @@ import { TopNavbar } from "@/app/components/top-navbar"
 import { Footer } from "@/app/components/footer"
 import { Toaster } from "@/components/toaster"
 import { Suspense } from "react"
-import KenyanFlagLoader from "@/components/ui/loading-spinner"
+import { KenyanFlagLoader } from "@/components/ui/loading-spinner"
+import { constructMetadata } from "@/lib/utils/metadata"
 
 const inter = Inter({ subsets: ["latin"] })
 
-export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "https://sportsacademyhub.com"),
-  title: {
-    default: "Sports Academy Hub | Empowering Kenyan Athletes",
-    template: "%s | Sports Academy Hub",
-  },
-  description:
-    "A comprehensive platform connecting athletes, coaches, scouts, and administrators to nurture sporting talent across Kenya.",
+export const metadata: Metadata = constructMetadata({
+  title: "Sports Academy Hub | Empowering Kenyan Athletes",
+  description: "A comprehensive platform connecting athletes, coaches, scouts, and administrators to nurture sporting talent across Kenya.",
   keywords: ["sports", "kenya", "athletes", "coaches", "scouts", "training", "sports academy", "athletics"],
-  authors: [{ name: "Sports Academy Hub Team" }],
-  creator: "Sports Academy Hub",
-  publisher: "Sports Academy Hub",
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
-  openGraph: {
-    type: "website",
-    locale: "en_US",
-    url: "/",
-    title: "Sports Academy Hub | Empowering Kenyan Athletes",
-    description:
-      "A comprehensive platform connecting athletes, coaches, scouts, and administrators to nurture sporting talent across Kenya.",
-    siteName: "Sports Academy Hub",
-    images: [
-      {
-        url: "/og-image.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Sports Academy Hub",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Sports Academy Hub | Empowering Kenyan Athletes",
-    description:
-      "A comprehensive platform connecting athletes, coaches, scouts, and administrators to nurture sporting talent across Kenya.",
-    images: ["/og-image.jpg"],
-    creator: "@sportsacademyhub",
-  },
-  manifest: "/manifest.json",
-  icons: {
-    icon: [
-      { url: "/favicon.ico" },
-      { url: "/icons/icon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/icons/icon-32x32.png", sizes: "32x32", type: "image/png" },
-    ],
-    apple: [{ url: "/icons/apple-touch-icon.png" }],
-  },
-}
+  openGraphImages: [{
+    url: "/og-image.jpg",
+    width: 1200,
+    height: 630,
+    alt: "Sports Academy Hub",
+  }],
+  twitterCardType: "summary_large_image"
+})
 
 export default function RootLayout({
   children,
@@ -72,11 +32,14 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en"> 
-    {/* suppressHydrationWarning */}
-      {/* ... keep head content ... */}
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
           <ReduxProvider>
             <AuthProvider>
               <div className="flex min-h-screen flex-col">

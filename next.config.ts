@@ -35,6 +35,11 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true, // TEMPORARY - remove after build works
   },
+  // Add this to ensure environment variables are available at runtime
+  env: {
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  },
   async headers() {
     return [
       {
@@ -92,6 +97,7 @@ const securityHeaders = [
     key: 'Permissions-Policy',
     value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
   },
+
 ];
 
 module.exports = nextConfig;

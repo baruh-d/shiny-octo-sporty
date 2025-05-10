@@ -69,3 +69,27 @@
   }
 }
 
+@layer utilities {
+  /* Optimized dialog transitions */
+  .animate-in {
+    animation-fill-mode: both;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .fade-in-90 {
+    animation-delay: 90ms;
+  }
+  
+  /* Touch optimization */
+  @supports (-webkit-touch-callout: none) {
+    .dialog-touch-optimized {
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+  
+  /* Hardware acceleration */
+  .gpu-accelerate {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+}

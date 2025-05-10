@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/app/components/theme-toggle"
 import { Menu, X } from "lucide-react"
 // import { Logo } from "@/app/components/logo"
-import { useAuth } from "@/app/components/auth/auth-provider"
+import useAuth from "@/app/hooks/use-auth"
 
 const navItems = [
   {

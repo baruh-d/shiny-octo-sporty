@@ -1,6 +1,6 @@
-import tailwindAnimate from "tailwindcss-animate"
-/** @type {import('tailwindcss').Config} */
+import tailwindAnimate from "tailwindcss-animate";
 
+/** @type {import('tailwindcss').Config} */
 const config = {
   darkMode: ["class"],
   content: [
@@ -20,9 +20,6 @@ const config = {
       },
     },
     extend: {
-      animation: {
-        spin: 'spin 1s linear infinite',
-      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -79,12 +76,10 @@ const config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
-        // Add unauthorized page animation
         "unauthorized-pulse": {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.8" },
         },
-        // New animations for contact page
         "fadeIn": {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" }
@@ -108,26 +103,56 @@ const config = {
         "shimmer": {
           "0%": { backgroundPosition: "-200% 0" },
           "100%": { backgroundPosition: "200% 0" }
+        },
+        "dialog-overlay-show": {
+          "from": { opacity: "0" },
+          "to": { opacity: "1" }
+        },
+        "dialog-content-show": {
+          "from": { 
+            opacity: "0", 
+            transform: "translate(-50%, -48%) scale(0.96)" 
+          },
+          "to": { 
+            opacity: "1", 
+            transform: "translate(-50%, -50%) scale(1)" 
+          }
         }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "unauthorized-pulse": "unauthorized-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-        // New animations for contact page
         "fadeIn": "fadeIn 0.8s ease-out forwards",
         "slideInFromLeft": "slideInFromLeft 0.8s ease-out forwards",
         "slideInFromRight": "slideInFromRight 0.8s ease-out forwards",
         "pulse": "pulse 2s infinite ease-in-out",
         "float": "float 3s infinite ease-in-out",
-        "shimmer": "shimmer 3s infinite linear"
+        "shimmer": "shimmer 3s infinite linear",
+        "dialog-overlay": "dialog-overlay-show 150ms cubic-bezier(0.16, 1, 0.3, 1)",
+        "dialog-content": "dialog-content-show 150ms cubic-bezier(0.16, 1, 0.3, 1)"
       },
       backgroundSize: {
         "200%": "200%"
+      },
+      transitionProperty: {
+        "height": "height",
+        "width": "width",
+        "size": "width, height",
+        "dialog": "opacity, transform"
+      },
+      zIndex: {
+        "dialog": "50",
+        "dropdown": "40",
+        "tooltip": "30"
       }
     },
   },
-  plugins: [tailwindAnimate],
-}
+  plugins: [
+    tailwindAnimate,
+    require("@tailwindcss/container-queries"),
+    require("tailwindcss-logical")
+  ],
+};
 
-export default config
+export default config;

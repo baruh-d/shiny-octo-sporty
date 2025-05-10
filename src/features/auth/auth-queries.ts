@@ -312,25 +312,47 @@ export const useSignOut = () => {
   const queryClient = useQueryClient();
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const { setToast, clearToast } = useAuthToast();
 
   return useMutation({
     mutationFn: async () => {
       dispatch(setAuthLoading(true));
+      clearToast(); // Clear any existing toasts
       const { error } = await logoutUser();
       if (error) throw new Error(error.message);
+      return true;
     },
     onSuccess: () => {
       // Clear all auth and user related queries
       queryClient.removeQueries({ queryKey: ['auth'] });
       queryClient.removeQueries({ queryKey: ['user'] });
       queryClient.removeQueries({ queryKey: ['profile'] });
-      dispatch(clearError()); // Fixed: renamed from clearAuthError to clearError
       
-      // Redirect to home after sign out
-      router.prefetch('/');
+      // Reset auth state
+      dispatch(clearError());
+      
+      // Clear client-side storage and trigger cross-tab sync
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('logout', Date.now().toString());
+        sessionStorage.clear();
+      }
+      
+      // Show success feedback
+      setToast({ 
+        success: 'You have been signed out successfully',
+        error: undefined
+      });
+      
+      // Redirect to sign-in with immediate refresh
+      router.push('/auth/signin');
+      router.refresh();
     },
     onError: (error: Error) => {
       dispatch(setAuthError(error.message));
+      setToast({
+        error: `Sign out failed: ${error.message}`,
+        success: undefined
+      });
     },
     onSettled: () => {
       dispatch(setAuthLoading(false));

@@ -26,7 +26,8 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { Transition } from "@headlessui/react";
-import { useAuth } from "@/app/components/auth/auth-provider";
+import useAuth from "@/app/hooks/use-auth";
+import { UserRole } from "@/types/auth"
 
 // Define the props for the Sidebar component
 interface SidebarProps {
@@ -44,8 +45,10 @@ export function Sidebar({ className }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
   const params = useParams();
-  const { userDetails } = useAuth();
-  const currentRole = userDetails?.role || (params.role as string) || "athlete";
+  const { role } = useAuth()
+
+  // Get current role with fallbacks
+  const currentRole = (role || params.role || "athlete") as UserRole
 
   // All possible routes with role restrictions
   const allRoutes: Route[] = [
@@ -65,7 +68,7 @@ export function Sidebar({ className }: SidebarProps) {
     { label: "Workouts", icon: Dumbbell, href: `/${currentRole}/workouts`, roles: ["athlete"] },
 
     // Coach-specific
-    { label: "My Athletes", icon: Users, href: `/${currentRole}/athletes`, roles: ["coach"] },
+    { label: "My Athletes", icon: Users, href: `/${currentRole}/athletes`, roles: ["coach", "admin"] as UserRole[] },
     { label: "Training Plans", icon: FileText, href: `/${currentRole}/training-plans`, roles: ["coach"] },
 
     // Scout-specific
