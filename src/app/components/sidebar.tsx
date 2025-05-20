@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { Transition } from "@headlessui/react";
 import useAuth from "@/app/hooks/use-auth";
-import { UserRole } from "@/types/auth"
+import { UserRole } from "@/types/consolidated-types"
 
 // Define the props for the Sidebar component
 interface SidebarProps {

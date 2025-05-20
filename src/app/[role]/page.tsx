@@ -1,15 +1,14 @@
 import { redirect } from "next/navigation";
-import { UserRole } from "@/types/auth";
-
-// Define valid roles here if you don't want to import them
-const validRoles: UserRole[] = ["admin", "coach", "athlete", "scout"];
+import { isValidUserRole } from "@/types/consolidated-types";
 
 export default function RolePage({ params }: { params: { role: string } }) {
   const role = params.role.toLowerCase();
   
-  if (role && validRoles.includes(role as UserRole)) {
+  // Use the isValidUserRole type guard function from consolidated-types
+  if (role && isValidUserRole(role)) {
     return redirect(`/${role}/dashboard`);
   }
   
-  return redirect("/auth/signin"); // or your preferred fallback route
+  // For invalid roles, redirect to signin
+  return redirect("/auth/signin");
 }

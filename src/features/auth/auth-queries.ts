@@ -19,7 +19,7 @@ import { supabase } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { getCSRFTokenFromCookie, isValidCSRFToken } from "@/lib/utils/csrf";
-import type { UserRole } from "@/types/auth";
+import type { UserRole } from "@/types/consolidated-types";
 import { useAuthToast } from "@/app/hooks/use-auth-toast"; // Added for the new function
 
 // Create a utility function for CSRF verification

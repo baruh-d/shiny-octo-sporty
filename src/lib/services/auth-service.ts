@@ -2,7 +2,7 @@
 "use server"
 
 import { createServerSupabaseClient } from "@/lib/supabase/server"
-import { UserRole } from "@/types/auth"
+import { UserRole } from "@/types/consolidated-types"
 
 const ROUTE_CONFIG = {
   public: ['/', '/about', '/blog', '/events', '/programs', '/contact'],

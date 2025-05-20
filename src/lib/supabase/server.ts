@@ -1,7 +1,7 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { cache } from "react";
-import type { UserRole } from "@/types/auth";
+import type { UserRole } from "@/types/consolidated-types";
 
 interface Profile {
   id: string;

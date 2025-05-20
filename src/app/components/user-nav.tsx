@@ -19,7 +19,7 @@ import { SignOutDialog } from "@/components/ui/signout-dialog"
 import { useRouter } from "next/navigation"
 import { useAuthToast } from "@/app/hooks/use-auth-toast"
 import { useSignOut } from "@/features/auth/auth-queries"
-import type { UserRole } from "@/types/auth"
+import type { UserRole } from "@/types/consolidated-types"
 
 export function UserNav() {
   const { user, role } = useAuth()

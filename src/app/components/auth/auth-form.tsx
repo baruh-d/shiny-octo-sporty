@@ -13,6 +13,14 @@ import { useEffect, useState, useMemo, useCallback } from "react"
 import { KenyanFlagLoader } from "@/components/ui/loading-spinner"
 import { debounce } from "lodash"
 
+// Import consolidated types
+import { 
+  UserRole, 
+  UserRoles, 
+  AuthFormErrors, 
+  AuthType as AuthTypeEnum
+} from "@/types/consolidated-types"
+
 // Form components
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Button } from "@/components/ui/button"
@@ -22,10 +30,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 // Constants
-const USER_ROLES = ["athlete", "coach", "scout"] as const
+const USER_ROLES: UserRole[] = [UserRoles.ATHLETE, UserRoles.COACH, UserRoles.SCOUT]
 const MAX_FAILED_ATTEMPTS = 3
 const INITIAL_DELAY_MS = 1000
 const MAX_DELAY_MS = 5000
+
+// Ensure we use the enum from consolidated types
+type AuthType = AuthTypeEnum
 
 const AUTH_TEXTS = {
   signin: {
@@ -54,13 +65,22 @@ const AUTH_TEXTS = {
   }
 } as const
 
-// Validation schemas
+// Validation schemas using our UserRole type
 const passwordSchema = z.string()
   .min(8, { message: "Password must be at least 8 characters" })
   .regex(/[A-Z]/, { message: "Must contain at least one uppercase letter" })
   .regex(/[a-z]/, { message: "Must contain at least one lowercase letter" })
   .regex(/[0-9]/, { message: "Must contain at least one number" })
   .regex(/[^A-Za-z0-9]/, { message: "Must contain at least one special character" })
+
+// Use the UserRole enum from consolidated types
+const userRoleSchema = z.enum([
+  UserRoles.ATHLETE, 
+  UserRoles.COACH, 
+  UserRoles.SCOUT
+], {
+  errorMap: () => ({ message: "Please select a valid role" })
+})
 
 const schemas = {
   signin: z.object({
@@ -70,16 +90,14 @@ const schemas = {
   signup: z.object({
     email: z.string().trim().toLowerCase().email({ message: "Please enter a valid email address" }),
     password: passwordSchema,
-    role: z.enum(USER_ROLES, {
-      errorMap: () => ({ message: "Please select a valid role" })
-    }),
+    role: userRoleSchema,
   }),
   "forgot-password": z.object({
     email: z.string().trim().toLowerCase().email({ message: "Please enter a valid email address" }),
   })
 }
 
-type AuthType = keyof typeof AUTH_TEXTS
+// Better type safety through conditional types
 type FormData<T extends AuthType> = z.infer<typeof schemas[T]>
 
 interface AuthFormProps {
@@ -100,7 +118,9 @@ export function AuthForm({ type, title, description }: AuthFormProps) {
   const redirectTo = useMemo(() => {
     const url = searchParams.get("redirectedFrom") || "/"
     try {
+      // Use URL constructor for safer URL parsing
       const parsed = new URL(url, window.location.origin)
+      // Only allow redirects to the same origin
       return parsed.origin === window.location.origin ? parsed.pathname : "/"
     } catch {
       return "/"
@@ -112,14 +132,14 @@ export function AuthForm({ type, title, description }: AuthFormProps) {
   const { mutateAsync: signUp } = useSignUp()
   const { mutateAsync: resetPassword } = useResetPassword()
 
-  // Form setup
-  const form = useForm<FormData<AuthType>>({
+  // Form setup with proper default values and proper typing
+  const form = useForm<FormData<typeof type>>({
     resolver: zodResolver(schemas[type]),
     defaultValues: {
       email: "",
       ...(type !== "forgot-password" && { password: "" }),
-      ...(type === "signup" && { role: "athlete" })
-    }
+      ...(type === "signup" && { role: UserRoles.ATHLETE })
+    } as unknown as FormData<typeof type>
   })
 
   // Reset form when type changes
@@ -127,8 +147,8 @@ export function AuthForm({ type, title, description }: AuthFormProps) {
     form.reset({
       email: "",
       ...(type !== "forgot-password" && { password: "" }),
-      ...(type === "signup" && { role: "athlete" })
-    })
+      ...(type === "signup" && { role: UserRoles.ATHLETE })
+    } as unknown as FormData<typeof type>)
     clearToast()
     setFailedAttempts(0)
   }, [type, form, clearToast])
@@ -141,50 +161,67 @@ export function AuthForm({ type, title, description }: AuthFormProps) {
     }
   }, [isRedirecting, redirectTo, router])
 
-  // Form submission handler
-  const onSubmit = useCallback(debounce(async (data: FormData<AuthType>) => {
-    try {
-      clearToast()
-      
-      if (failedAttempts >= MAX_FAILED_ATTEMPTS) {
-        const delay = Math.min(
-          INITIAL_DELAY_MS * Math.pow(1.5, failedAttempts - MAX_FAILED_ATTEMPTS),
-          MAX_DELAY_MS
-        )
-        await new Promise(resolve => setTimeout(resolve, delay))
+  // Form submission handler with security improvements
+  const onSubmit = useCallback(async (data: FormData<typeof type>) => {
+    const debouncedSubmit = debounce(async () => {
+      try {
+        clearToast()
+        
+        // Implement exponential backoff for too many failed attempts
+        if (failedAttempts >= MAX_FAILED_ATTEMPTS) {
+          const delay = Math.min(
+            INITIAL_DELAY_MS * Math.pow(1.5, failedAttempts - MAX_FAILED_ATTEMPTS),
+            MAX_DELAY_MS
+          )
+          await new Promise(resolve => setTimeout(resolve, delay))
+        }
+    
+        if (type === "signup") {
+          await signUp(data as FormData<"signup">)
+          setToast({ success: "Account created! Please check your email.", error: undefined })
+          form.reset()
+        } else if (type === "signin") {
+          await signIn(data as FormData<"signin">)
+          setToast({ success: "Welcome back! Redirecting...", error: undefined })
+          setIsRedirecting(true)
+        } else {
+          // Extract email from the data object
+          await resetPassword((data as FormData<"forgot-password">).email)
+          setToast({ success: "Password reset link sent!", error: undefined })
+          form.reset()
+        }
+        
+        setFailedAttempts(0)
+      } catch (err: unknown) {
+        setFailedAttempts(prev => prev + 1)
+        // Improved error messages with specific handling
+        let message = "Authentication failed. Please try again."
+        
+        if (err instanceof Error) {
+          if (err.message.includes("Email not confirmed")) {
+            message = "Please verify your email first."
+          } else if (err.message.includes("Invalid login credentials")) {
+            message = "Invalid email or password. Please try again."
+          } else if (err.message.includes("Rate limit")) {
+            message = "Too many attempts. Please try again later."
+          }
+        }
+        
+        setToast({ error: message, success: undefined })
+        
+        // Log errors but don't expose details to the user
+        console.error("Auth error:", err)
       }
-  
-      if (type === "signup") {
-        await signUp(data as FormData<"signup">)
-        setToast({ success: "Account created! Please check your email.", error: undefined })
-        form.reset()
-      } else if (type === "signin") {
-        await signIn(data as FormData<"signin">)
-        setToast({ success: "Welcome back! Redirecting...", error: undefined })
-        setIsRedirecting(true)
-      } else {
-        // Fix: Extract email from the data object
-        await resetPassword((data as FormData<"forgot-password">).email)
-        setToast({ success: "Password reset link sent!", error: undefined })
-        form.reset()
-      }
-      
-      setFailedAttempts(0)
-    } catch (err: unknown) {
-      setFailedAttempts(prev => prev + 1)
-      const message = err instanceof Error 
-        ? err.message.includes("Email not confirmed")
-          ? "Please verify your email first."
-          : "Authentication failed. Please try again."
-        : "An unexpected error occurred."
-      setToast({ error: message, success: undefined })
-    }
-  }, 300), [failedAttempts, type, signIn, signUp, resetPassword, form, setToast, clearToast])
-  // Cleanup debounce
-  useEffect(() => {
-    return () => onSubmit.cancel()
-  }, [onSubmit])
+    }, 300);
 
+    debouncedSubmit();
+    
+    // Clean up the debounced function on component unmount
+    return () => {
+      debouncedSubmit.cancel();
+    };
+  }, [failedAttempts, type, signIn, signUp, resetPassword, form, setToast, clearToast]);
+  
   const currentTexts = AUTH_TEXTS[type]
   const isLoading = 
     form.formState.isSubmitting || 
@@ -256,6 +293,7 @@ export function AuthForm({ type, title, description }: AuthFormProps) {
                             type={showPassword ? "text" : "password"}
                             autoComplete={type === "signin" ? "current-password" : "new-password"}
                             disabled={isLoading}
+                            aria-invalid={(form.formState.errors as AuthFormErrors<typeof type>).password !== undefined}
                             {...field}
                           />
                         </FormControl>
@@ -319,6 +357,7 @@ export function AuthForm({ type, title, description }: AuthFormProps) {
                 type="submit" 
                 className="w-full bg-kas-green hover:bg-kas-green/90" 
                 disabled={isLoading}
+                aria-busy={isLoading}
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center">
