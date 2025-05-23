@@ -1,6 +1,6 @@
 // components/dashboard-header.tsx
 import { cn } from "@/lib/utils/utils"
-import { useAuth } from "@/app/components/auth/auth-provider"
+import useAuth from "@/app/hooks/use-auth"
 
 interface DashboardHeaderProps {
   heading: string
@@ -15,8 +15,8 @@ export function DashboardHeader({
   children,
   className,
 }: DashboardHeaderProps) {
-  const { userDetails } = useAuth()
-  
+  const { user } = useAuth()
+
   return (
     <div className={cn(
       "flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between",
@@ -25,9 +25,9 @@ export function DashboardHeader({
       <div className="grid gap-1">
         <h1 className="text-2xl font-bold tracking-tight">
           {heading}
-          {userDetails?.role && (
+          {user?.role && (
             <span className="ml-2 text-sm font-normal text-muted-foreground capitalize">
-              ({userDetails.role})
+              ({user.role})
             </span>
           )}
         </h1>

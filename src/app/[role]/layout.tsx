@@ -6,18 +6,20 @@ import { ThemeToggle } from "@/app/components/theme-toggle"
 import { Logo } from "@/app/components/logo"
 import { notFound } from "next/navigation"
 
-// Define valid roles
-const validRoles = ["athlete", "coach", "scout", "admin"] as const
-type Role = typeof validRoles[number]
+import { UserRole, UserRoles } from "@/types/consolidated-types"
+
+// Derive valid roles from the UserRoles constant
+const validRoles = Object.values(UserRoles) as UserRole[]
 
 // Role-specific titles
-const roleTitles: Record<Role, string> = {
+const roleTitles: Record<UserRole, string> = {
   athlete: "Athlete Dashboard",
   coach: "Coach Dashboard",
   scout: "Scout Dashboard",
   admin: "Admin Dashboard",
 }
 
+// Main component
 export default function RoleLayout({
   children,
   params,
@@ -25,12 +27,12 @@ export default function RoleLayout({
   children: React.ReactNode
   params: { role: string }
 }) {
-  // Type guard function
-  const isValidRole = (role: string): role is Role => {
-    return validRoles.includes(role as Role)
+  // Type guard using UserRole
+  const isValidRole = (role: string): role is UserRole => {
+    return validRoles.includes(role as UserRole)
   }
 
-  // Validate role
+  // Validate route param
   if (!isValidRole(params.role)) {
     notFound()
   }
