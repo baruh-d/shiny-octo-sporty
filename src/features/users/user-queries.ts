@@ -19,7 +19,7 @@ export const useUpdateProfile = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (payload: { userId: string; updates: Partial<any> }) => {
+    mutationFn: async (payload: { userId: string; updates: Partial<unknown> }) => {
       const data = await updateUserProfile(payload.userId, payload.updates);
       return data;
     },

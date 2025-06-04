@@ -1,9 +1,9 @@
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
-import { ThemeProvider } from "@/app/components/theme-provider"
+// import { ThemeProvider } from "@/app/components/theme-provider"
 import ReduxProvider from "@/lib/redux/provider"
-import { AuthProvider } from "@/app/components/auth/auth-provider"
+// import { AuthProvider } from "@/app/components/auth/auth-provider"
 import { TopNavbar } from "@/app/components/top-navbar"
 import { Footer } from "@/app/components/footer"
 import { Toaster } from "@/components/toaster"
@@ -34,14 +34,14 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <ThemeProvider
+        {/* <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
-        >
+        > */}
           <ReduxProvider>
-            <AuthProvider>
+            {/* <AuthProvider> */}
               <div className="flex min-h-screen flex-col">
                 <TopNavbar />
                 <Suspense fallback={<KenyanFlagLoader fullPage />}>
@@ -50,9 +50,9 @@ export default function RootLayout({
                 <Toaster />
                 <Footer />
               </div>
-            </AuthProvider>
+            {/* </AuthProvider> */}
           </ReduxProvider>
-        </ThemeProvider>
+        {/* </ThemeProvider> */}
       </body>
     </html>
   )

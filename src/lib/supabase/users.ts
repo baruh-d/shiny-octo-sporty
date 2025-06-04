@@ -106,7 +106,7 @@ export async function fetchUsersByCreatedDate(date: string) {
     .from('users')
     .select('*')
     .eq('created_at', date);
-
+    // Note: Adjust the date format as needed, e.g., using a date string or timestamp
   if (error) handleSupabaseError(error, "Error fetching users by created date");
   return data;
 }
