@@ -1,4 +1,5 @@
 // components/dashboard-header.tsx
+"use client"
 import { cn } from "@/lib/utils/utils"
 import useAuth from "@/app/hooks/use-auth"
 
